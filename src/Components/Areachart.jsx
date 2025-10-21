@@ -11,7 +11,6 @@ import {
 } from "recharts";
 import { fetchDashboardChart } from "../DAL/fetch";
 
-
 const Areachart = () => {
   const [chartData, setChartData] = useState([]);
 
@@ -19,12 +18,12 @@ const Areachart = () => {
     try {
       const response = await fetchDashboardChart();
       if (response?.last30DaysData) {
-        // Formatting date for the X-Axis
+  
         const formattedData = response.last30DaysData.map((item) => ({
           day: new Date(item.date).toLocaleDateString("en-US", {
             month: "short",
             day: "2-digit",
-          }), // Converts date to "Mar 09" format
+          }), 
           Impressions: item.views,
         }));
         setChartData(formattedData);

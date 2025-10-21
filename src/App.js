@@ -1,83 +1,163 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Routes, Route, useLocation, useNavigate, Navigate } from "react-router-dom";
 import "./App.css";
+import {
+  MdOutlineDoubleArrow,
+  MdDashboard,
+  MdOutlineAssignment,
+  MdWorkOutline,
+} from "react-icons/md";
+import {
+  FaUsers,
+  FaCalendarCheck,
+  FaBuilding,
+  FaMoneyBillWave,
+  FaChartLine,
+  FaChalkboardTeacher,
+  FaFileAlt,
+} from "react-icons/fa";
+import { HiUserGroup } from "react-icons/hi";
+import { IoMdListBox } from "react-icons/io";
+import { GiPayMoney } from "react-icons/gi";
+import { IoLogOut } from "react-icons/io5";
+import axios from "axios";
+
 import zemaltlogo from "./Assets/zemalt-logo.png";
-import personimg from "./Assets/person.png";
 
-import Categories from "./Pages/Categories/Categories";
-
+// Pages
 import Dashboard from "./Pages/Dashboard/Dashboard";
+import Employees from "./Pages/Categories/Employee";
+import Departments from "./Pages/Categories/Departments";
+import Designations from "./Pages/Categories/Designation";
+import Attendance from "./Pages/Categories/Attendance";
+import Leaves from "./Pages/Categories/Leaves";
+import Jobs from "./Pages/Categories/Jobs";
+import Applications from "./Pages/Categories/Applications";
+import Payroll from "./Pages/Categories/Payroll";
+import Performance from "./Pages/Categories/Appraisal";
+import Training from "./Pages/Categories/Training";
+import Fines from "./Pages/Categories/Fine";
+import Reports from "./Pages/Categories/Reports";
 
-const App = ({ onLogout, message }) => {
+// Menu Icon Map
+const allMenuItems = {
+  Dashboard: { route: "/dashboard", icon: <MdDashboard /> },
+  Departments: { route: "/departments", icon: <FaBuilding /> },
+  Designations: { route: "/designations", icon: <HiUserGroup /> },
+  Employees: { route: "/employees", icon: <FaUsers /> },
+  Attendance: { route: "/attendance", icon: <FaCalendarCheck /> },
+  Leaves: { route: "/leaves", icon: <IoMdListBox /> },
+  Performance: { route: "/performance", icon: <FaChartLine /> },
+  Training: { route: "/training", icon: <FaChalkboardTeacher /> },
+  Payroll: { route: "/payroll", icon: <FaMoneyBillWave /> },
+  Fines: { route: "/fines", icon: <GiPayMoney /> },
+  Jobs: { route: "/jobs", icon: <MdWorkOutline /> },
+  Applications: { route: "/applications", icon: <MdOutlineAssignment /> },
+  Reports: { route: "/reports", icon: <FaFileAlt /> },
+};
+
+// Pages Map
+const pageComponents = {
+  Dashboard,
+  Departments,
+  Designations,
+  Employees,
+  Attendance,
+  Leaves,
+  Performance,
+  Training,
+  Payroll,
+  Fines,
+  Jobs,
+  Applications,
+  Reports
+};
+
+// ProtectedRoute Component
+const ProtectedRoute = ({ component: Component, allowed }) => {
+  if (!allowed) return <Navigate to="/dashboard" replace />;
+  return <Component />;
+};
+
+const App = ({ onLogout }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeitems, setActiveitems] = useState(null);
-
-  const items = useMemo(
-    () => [
-      { id: 1, name: "Dashboard", route: "/dashboard" },
-      
-      { id: 2, name: "Categories", route: "/categories" },
-      
-    
-    ],
-    []
-  );
+  const [activeItem, setActiveItem] = useState(null);
+  const [isOpen, setIsOpen] = useState(true);
+  const [roleModules, setRoleModules] = useState([]); // modules array from backend
 
   useEffect(() => {
-    const currentItem = items.find((item) => item.route === location.pathname);
-    setActiveitems(currentItem?.id || null);
-  }, [location, items]);
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user?.role) {
+      // Fetch allowed modules dynamically for this role
+      axios
+        .get(`/api/roles/${user.role}`) // backend should return { modules: ["Dashboard","Employees",...]}
+        .then((res) => setRoleModules(res.data.modules || []))
+        .catch((err) => console.error(err));
+    }
+  }, []);
 
-  const handleitemsClick = (item) => {
-    setActiveitems(item.id);
+  const menuItems = Object.keys(allMenuItems)
+    .filter((name) => roleModules.includes(name))
+    .map((name) => ({ name, ...allMenuItems[name] }));
+
+  useEffect(() => {
+    const currentItem = menuItems.find((item) => item.route === location.pathname);
+    setActiveItem(currentItem?.name || null);
+  }, [location.pathname, menuItems]);
+
+  const handleItemClick = (item) => {
+    setActiveItem(item.name);
     navigate(item.route);
   };
 
+  const toggleMenu = () => setIsOpen((prev) => !prev);
+
   return (
     <div className="App">
-      <div className="app-side-bar">
-        <img src={zemaltlogo} className="home-zemalt-logo" alt="zemalt Logo" />
-        <div className="userprofile">
-          <div
-            className="avatar"
-            style={{
-              backgroundImage: `url(${personimg})`,
-              backgroundPosition: "center",
-              backgroundRepeat: "no-repeat",
-              backgroundSize: "cover",
-            }}
-          ></div>
-          <div className="avatar-data">
-            <p>Profile</p>
-            <h4>Admin</h4>
-          </div>
+      {/* Sidebar */}
+      <div className={`app-side-bar ${isOpen ? "open" : "closed"}`}>
+        <div className="opencloseicon" onClick={toggleMenu}>
+          <MdOutlineDoubleArrow className={isOpen ? "rotated" : ""} />
         </div>
+
+        <img src={zemaltlogo} className="home-zemalt-logo" alt="zemalt Logo" />
+
         <ul>
-          {items.map((item) => (
+          {menuItems.map((item) => (
             <li
-              key={item.id}
-              className={activeitems === item.id ? "selected-item" : "unselected"}
-              onClick={() => handleitemsClick(item)}
+              key={item.name}
+              className={activeItem === item.name ? "selected-item" : "unselected"}
+              onClick={() => handleItemClick(item)}
             >
-              {item.name}
+              {item.icon}
+              {isOpen && <span>{item.name}</span>}
             </li>
           ))}
           <li className="unselected" onClick={onLogout}>
-            Logout
+            <IoLogOut />
+            {isOpen && <span>Logout</span>}
           </li>
         </ul>
       </div>
+
+      {/* Main Content */}
       <div className="app-right">
-      
-          <Routes>
-          <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/categories" element={<Categories />} />
-      
-           
-           
-          </Routes>
-    
+        <Routes>
+          {Object.keys(pageComponents).map((name) => (
+            <Route
+              key={name}
+              path={allMenuItems[name]?.route || "/dashboard"}
+              element={
+                <ProtectedRoute
+                  component={pageComponents[name]}
+                  allowed={roleModules.includes(name)}
+                />
+              }
+            />
+          ))}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
       </div>
     </div>
   );

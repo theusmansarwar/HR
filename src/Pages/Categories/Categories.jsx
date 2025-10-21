@@ -1,4 +1,3 @@
-import React from "react";
 import { useTable } from "../../Components/Models/useTable";
 
 const Categories = () => {
@@ -9,7 +8,6 @@ const Categories = () => {
     { id: "createdAt", label: "Created At" },
   ];
 
-  
   const { tableUI } = useTable({  attributes, tableType: "Categories" });
 
   return <>{tableUI}</>;

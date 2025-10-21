@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Paper,
@@ -19,17 +19,51 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { fetchallcategorylist } from "../../DAL/fetch";
+import {
+  fetchallcategorylist,
+  fetchDepartments,
+  fetchDesignations,
+  fetchEmployees,
+  fetchAttendance,
+  fetchLeaves,
+  fetchJobs,
+  fetchApplications,
+  fetchPerformance,
+  fetchTrainings,
+  fetchPayrolls,
+  fetchFines,
+} from "../../DAL/fetch";
 import { formatDate } from "../../Utils/Formatedate";
 import truncateText from "../../truncateText";
 import { useNavigate } from "react-router-dom";
 import AddCategories from "./addcategorie";
-import { deleteAllCategories } from "../../DAL/delete";
+import {
+  deleteAllCategories,
+  deleteDepartment,
+  deleteDesignation,
+  deleteEmployee,
+  deleteAttendance,
+  deleteLeaves,
+  deleteJobs,
+  deleteApplications,
+  deletePerformance,
+  deleteTraining,
+  deletePayroll,
+  deleteFines,
+} from "../../DAL/delete";
 import { useAlert } from "../Alert/AlertContext";
 import DeleteModal from "./confirmDeleteModel";
 
-export function useTable({ attributes, tableType, limitPerPage = 10 }) {
-  const { showAlert } = useAlert(); // Since you created a custom hook
+export function useTable({
+  attributes = [],
+  tableType,
+  pageData = [],
+  limitPerPage = 10,
+  onAdd,
+  onEdit,
+  onView,
+}) {
+  const { showAlert } = useAlert();
   const savedState =
     JSON.parse(localStorage.getItem(`${tableType}-tableState`)) || {};
   const [page, setPage] = useState(savedState.page || 1);
@@ -38,7 +72,6 @@ export function useTable({ attributes, tableType, limitPerPage = 10 }) {
   );
   const [searchQuery, setSearchQuery] = useState(savedState.searchQuery || "");
   const [selected, setSelected] = useState([]);
-
   const [data, setData] = useState([]);
   const [totalRecords, setTotalRecords] = useState(0);
   const navigate = useNavigate();
@@ -46,30 +79,113 @@ export function useTable({ attributes, tableType, limitPerPage = 10 }) {
   const [modeltype, setModeltype] = useState("Add");
   const [modelData, setModelData] = useState({});
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
+
+  const fetchData = async () => {
+    let response;
+
+    if (tableType === "Categories") {
+      response = await fetchallcategorylist(page, rowsPerPage, searchQuery);
+      if (response.status === 400) {
+        localStorage.removeItem("Token");
+        navigate("/login");
+      } else {
+        setData(response.categories || []);
+        setTotalRecords(response.categories ? response.categories.length : 0);
+      }
+    } else if (tableType === "Employees") {
+      response = await fetchEmployees(page, rowsPerPage, searchQuery);
+      if (response?.data) {
+        setData(response.data);
+        setTotalRecords(response.data.length);
+      }
+    } else if (tableType === "Departments") {
+      response = await fetchDepartments(page, rowsPerPage, searchQuery);
+      if (response?.data) {
+        setData(response.data);
+        setTotalRecords(response.data.length);
+      }
+    } else if (tableType === "Designations") {
+      response = await fetchDesignations(page, rowsPerPage, searchQuery);
+      if (response?.data) {
+        setData(response.data);
+        setTotalRecords(response.data.length);
+      } else if (response?.designations) {
+        setData(response.designations);
+        setTotalRecords(response.designations.length);
+      }
+    } else if (tableType === "Attendance") {
+      response = await fetchAttendance(page, rowsPerPage, searchQuery);
+      if (response?.data) {
+        const attendanceArray = Array.isArray(response.data)
+          ? response.data
+          : [response.data];
+
+        const formattedData = attendanceArray.map((att) => ({
+          ...att,
+          _id: att._id || att.attendanceId,
+          isArchived: att.isArchived ?? att.archive === "Yes",
+        }));
+
+        setData(formattedData);
+        setTotalRecords(formattedData.length);
+      }
+    } else if (tableType === "Leaves") {
+      response = await fetchLeaves(page, rowsPerPage, searchQuery);
+      if (response?.data) {
+        setData(response.data);
+        setTotalRecords(response.data.length);
+      }
+    } else if (tableType === "Jobs") {
+      response = await fetchJobs(page, rowsPerPage, searchQuery);
+      if (response?.data) {
+        setData(response.data);
+        setTotalRecords(response.data.length);
+      }
+    } else if (tableType === "Applications") {
+      response = await fetchApplications(page, rowsPerPage, searchQuery);
+      if (response?.data) {
+        setData(response.data);
+        setTotalRecords(response.data.length);
+      }
+    } else if (tableType === "Performance") {
+      response = await fetchPerformance(page, rowsPerPage, searchQuery);
+      if (response?.data) {
+        setData(response.data);
+        setTotalRecords(response.data.length);
+      }
+    } else if (tableType === "Training") {
+      response = await fetchTrainings(page, rowsPerPage, searchQuery);
+      if (response?.data) {
+        setData(response.data);
+        setTotalRecords(response.data.length);
+      }
+    } else if (tableType === "Payroll") {
+      response = await fetchPayrolls(page, rowsPerPage, searchQuery);
+      if (response?.data) {
+        setData(response.data);
+        setTotalRecords(response.data.length);
+      }
+    } else if (tableType === "Fines") {
+      response = await fetchFines(page, rowsPerPage, searchQuery);
+      if (response?.data) {
+        setData(response.data);
+        setTotalRecords(response.data.length);
+      }
+    } else {
+      setData(pageData);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, [page, rowsPerPage]);
+
   useEffect(() => {
     localStorage.setItem(
       `${tableType}-tableState`,
       JSON.stringify({ page, rowsPerPage, searchQuery })
     );
   }, [page, rowsPerPage, searchQuery, tableType]);
-
-  const fetchData = async () => {
-    let response;
-    if (tableType === "Categories") {
-      response = await fetchallcategorylist(page, rowsPerPage, searchQuery);
-
-      if (response.status == 400) {
-        localStorage.removeItem("Token");
-        navigate("/login");
-      } else {
-        setData(response.categories);
-        setTotalRecords(response.categories.length);
-      }
-    }
-  };
 
   const handleSelectAllClick = (event) => {
     setSelected(event.target.checked ? data.map((row) => row._id) : []);
@@ -78,7 +194,7 @@ export function useTable({ attributes, tableType, limitPerPage = 10 }) {
   const isSelected = (id) => selected.includes(id);
 
   const handleChangePage = (_, newPage) => {
-    setPage(newPage + 1); // ✅ Adjust for API's 1-based pagination
+    setPage(newPage + 1);
   };
 
   const handleChangeRowsPerPage = (event) => {
@@ -86,15 +202,12 @@ export function useTable({ attributes, tableType, limitPerPage = 10 }) {
     setPage(0);
   };
 
-  const handleViewClick = (category) => {
-    if (tableType === "Categories") {
-      setModelData(category);
-      setModeltype("Update");
-      setOpenCategoryModal(true);
-    }
+  const handleViewClick = (row) => {
+    if (onEdit) onEdit(row);
   };
-const handleSearch = () => {
-    fetchData();
+
+  const handleSearch = () => {
+    fetchData(page, rowsPerPage, searchQuery);
   };
 
   const handleDelete = async () => {
@@ -103,19 +216,53 @@ const handleSearch = () => {
       return;
     }
 
-    console.log("Attempting to delete IDs:", selected);
-
     try {
       let response;
       if (tableType === "Categories") {
         response = await deleteAllCategories({ ids: selected });
+      } else if (tableType === "Departments") {
+        for (const id of selected) await deleteDepartment(id);
+        response = { status: 200, message: "Deleted successfully" };
+      } else if (tableType === "Designations") {
+        for (const id of selected) await deleteDesignation(id);
+        response = { status: 200, message: "Deleted successfully" };
+      } else if (tableType === "Employees") {
+        for (const id of selected) await deleteEmployee(id);
+        response = { status: 200, message: "Deleted successfully" };
+      } else if (tableType === "Attendance") {
+        for (const id of selected) await deleteAttendance(id);
+        response = { status: 200, message: "Deleted successfully" };
+      } else if (tableType === "Leaves") {
+        for (const id of selected) await deleteLeaves(id);
+        response = { status: 200, message: "Deleted successfully" };
+      } else if (tableType === "Jobs") {
+        for (const id of selected) await deleteJobs(id);
+        response = { status: 200, message: "Deleted successfully" };
+      } else if (tableType === "Applications") {
+        for (const id of selected) await deleteApplications(id);
+        response = { status: 200, message: "Deleted successfully" };
+      } else if (tableType === "Performance") {
+        for (const id of selected) await deletePerformance(id);
+        response = { status: 200, message: "Deleted successfully" };
+      } else if (tableType === "Training") {
+        for (const id of selected) await deleteTraining(id);
+        response = { status: 200, message: "Deleted successfully" };
+      } else if (tableType === "Payroll") {
+        for (const id of selected) await deletePayroll(id);
+        response = { status: 200, message: "Deleted successfully" };
+      } else if (tableType === "Fines") {
+        for (const id of selected) await deleteFines(id);
+        response = { status: 200, message: "Deleted successfully" };
       }
-      if (response.status === 200) {
+
+      if (response?.status === 200) {
         showAlert("success", response.message || "Deleted successfully");
-        fetchData();
+        setData((prevData) =>
+          prevData.filter((row) => !selected.includes(row._id))
+        );
         setSelected([]);
       } else {
-        showAlert("error", response.message || "Failed to delete items");
+        showAlert("error", response?.message || "Failed to delete items");
       }
     } catch (error) {
       console.error("Error in delete request:", error);
@@ -127,23 +274,34 @@ const handleSearch = () => {
     if (tableType === "Categories") {
       setOpenCategoryModal(true);
       setModeltype("Add");
-      setModelData();
+      setModelData({});
+    } else if (typeof onAdd === "function") {
+      onAdd();
     }
   };
 
   const getNestedValue = (obj, path) => {
-    return path
+    const value = path
       .split(".")
       .reduce(
         (acc, key) => (acc && acc[key] !== undefined ? acc[key] : "N/A"),
         obj
       );
+
+    if (typeof value === "object" && value !== null) {
+      return (
+        value.departmentName || value.designationName || JSON.stringify(value)
+      );
+    }
+
+    return value;
   };
 
   const handleResponse = (response) => {
     showAlert(response.messageType, response.message);
     fetchData();
   };
+
   const handleDeleteClick = () => {
     setOpenDeleteModal(true);
   };
@@ -158,6 +316,7 @@ const handleSearch = () => {
           Modeldata={modelData}
           onResponse={handleResponse}
         />
+
         <DeleteModal
           open={openDeleteModal}
           setOpen={setOpenDeleteModal}
@@ -170,44 +329,43 @@ const handleSearch = () => {
               <Typography variant="h5" sx={{ color: "var(--primary-color)" }}>
                 {tableType} List
               </Typography>
-{tableType === "Categories" && (
-                  <TextField
-                    size="small"
-                    placeholder="Search..."
-                    variant="outlined"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    sx={{
-                      minWidth: 200,
-                      backgroundColor: "white",
-                      borderRadius: 1,
-                      "& .MuiOutlinedInput-root": {
-                        "& fieldset": {
-                          borderColor: "var(--background-color)",
-                        },
-                        "&:hover fieldset": {
-                          borderColor: "var(--background-color)",
-                        },
-                        "&.Mui-focused fieldset": {
-                          borderColor: "var(--background-color)",
-                        },
-                      },
-                    }}
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <SearchIcon
-                            onClick={handleSearch}
-                            sx={{
-                              cursor: "pointer",
-                              color: "var(--background-color)",
-                            }}
-                          />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                )}
+              <TextField
+                size="small"
+                placeholder={`Search ${tableType}...`}
+                variant="outlined"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                sx={{
+                  minWidth: 200,
+                  backgroundColor: "white",
+                  borderRadius: 1,
+                  "& .MuiOutlinedInput-root": {
+                    "& fieldset": {
+                      borderColor: "var(--background-color)",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "var(--background-color)",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "var(--background-color)",
+                    },
+                  },
+                }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <SearchIcon
+                        onClick={handleSearch}
+                        sx={{
+                          cursor: "pointer",
+                          color: "var(--background-color)",
+                        }}
+                      />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+
               {selected.length > 0 ? (
                 <IconButton onClick={handleDeleteClick} sx={{ color: "red" }}>
                   <DeleteIcon />
@@ -246,8 +404,11 @@ const handleSearch = () => {
                     </TableCell>
                     {attributes.map((attr) => (
                       <TableCell
-                        key={attr._id}
-                        sx={{ color: "var(--secondary-color)" }}
+                        key={attr.id}
+                        sx={{
+                          color: "var(--secondary-color)",
+                          minWidth: "150px",
+                        }}
                       >
                         {attr.label}
                       </TableCell>
@@ -258,10 +419,18 @@ const handleSearch = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {data.map((row) => {
+                  {data.map((row, index) => {
+                    // const isItemSelected = isSelected(
+                    //   tableType === "Departments" ? row.id : row._id
+                    // );
                     const isItemSelected = isSelected(row._id);
+
+
                     return (
-                      <TableRow key={row._id} selected={isItemSelected}>
+                      <TableRow
+                        key={row._id || row.id || `${tableType}-${index}`}
+                        selected={isItemSelected}
+                      >
                         <TableCell padding="checkbox">
                           <Checkbox
                             sx={{ color: "var(--primary-color)" }}
@@ -269,7 +438,7 @@ const handleSearch = () => {
                             onChange={() => {
                               setSelected((prev) =>
                                 isItemSelected
-                                  ? prev.filter((id) => id !== row._id)
+                                  ? prev.filter((selId) => selId !== row._id)
                                   : [...prev, row._id]
                               );
                             }}
@@ -305,7 +474,7 @@ const handleSearch = () => {
                               0
                             ) : typeof getNestedValue(row, attr.id) ===
                               "string" ? (
-                              truncateText(getNestedValue(row, attr.id), 30) // ✅ Truncate text safely
+                              truncateText(getNestedValue(row, attr.id), 30)
                             ) : (
                               getNestedValue(row, attr.id)
                             )}
@@ -333,9 +502,9 @@ const handleSearch = () => {
             <TablePagination
               rowsPerPageOptions={[5, 10, 25]}
               component="div"
-              count={totalRecords} // ✅ Correct count from API
+              count={totalRecords}
               rowsPerPage={rowsPerPage}
-              page={page - 1} // ✅ Convert to 0-based index for Material-UI
+              page={page - 1}
               onPageChange={handleChangePage}
               onRowsPerPageChange={handleChangeRowsPerPage}
             />
@@ -343,5 +512,6 @@ const handleSearch = () => {
         </Box>
       </>
     ),
+    fetchData,
   };
 }

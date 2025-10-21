@@ -15,7 +15,7 @@ export const fetchcategorylist = async () => {
 
 export const fetchDashboard = async () => {
   const reqObj = {
-    path: "/admin/stats",
+    path: "",
     method: "GET",
     headers: {
       Authorization: `Bearer ${localStorage.getItem("Token")}`,
@@ -47,6 +47,94 @@ export const fetchallcategorylist = async (page, rowsPerPages) => {
     },
 
     body: {},
+  };
+  
+  return invokeApi(reqObj);
+};
+
+export const fetchDepartments = async () => {
+  const reqObj = {
+    path: "/departments/getDepartments",
+    method: "GET",
+  };
+  return invokeApi(reqObj);
+};
+
+export const fetchDesignations = async () => {
+  const reqObj = {
+    path: "/designations/getDesignations",
+    method: "GET",
+  };
+  return invokeApi(reqObj);
+};
+
+export const fetchEmployees = async () => {
+  const reqObj = {
+    path: "/employees/getEmployees",
+    method: "GET",
+  };
+  return invokeApi(reqObj);
+}
+export const fetchAttendance = async () => {
+  const reqObj = {
+    path: "/attendance/getAttendances",
+    method: "GET",
+  };
+  return invokeApi(reqObj);
+};
+
+export const fetchLeaves = async () => {
+  const reqObj = {
+    path: "/leaves/getLeaves",
+    method: "GET",
+  };
+  return invokeApi(reqObj);
+};
+
+export const fetchJobs = async () => {
+  const reqObj = {
+    path: "/jobs/getJobs",
+    method: "GET",
+  };
+  return invokeApi(reqObj);
+};
+
+export const fetchApplications = async () => {
+  const reqObj = {
+    path: "/applications/getApplications",
+    method: "GET",
+  };
+  return invokeApi(reqObj);
+  };
+
+export const fetchPerformance = async () => {
+  const reqObj = {
+    path: "/performance/getPerformance",
+    method: "GET",
+  };
+  return invokeApi(reqObj);
+};
+
+export const fetchTrainings = async () => {
+  const reqObj = {
+    path: "/training/getTrainings",
+    method: "GET",
+  };
+  return invokeApi(reqObj);
+};
+
+export const fetchFines = async () => {
+  const reqObj = {  
+    path: "/fines/getFines",
+    method: "GET",
+  };
+  return invokeApi(reqObj);
+};
+
+export const fetchPayrolls = async () => {
+  const reqObj = {
+    path: "/payroll/getPayrolls",
+    method: "GET",
   };
   return invokeApi(reqObj);
 };

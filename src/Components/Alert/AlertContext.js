@@ -1,6 +1,5 @@
 import React, { createContext, useState, useContext } from "react";
 import CustomAlert from "./CustomAlert";
-
 const AlertContext = createContext();
 
 export const AlertProvider = ({ children }) => {

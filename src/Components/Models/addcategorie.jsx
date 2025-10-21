@@ -11,7 +11,6 @@ import {
 import { createnewCategory } from "../../DAL/create";
 import { updateCategory } from "../../DAL/edit";
 
-
 const style = {
   position: "absolute",
   top: "50%",
@@ -46,7 +45,7 @@ export default function AddCategories({ open, setOpen, Modeltype, Modeldata,onRe
       };
   let response;
     if (Modeltype === "Add") {
-      response =await createnewCategory(categoryData); // Send FormData
+      response =await createnewCategory(categoryData); // Sending FormData directly
     }else{
         response =await updateCategory(id,categoryData); 
     }
@@ -62,7 +61,6 @@ export default function AddCategories({ open, setOpen, Modeltype, Modeldata,onRe
     setOpen(false);
   };
   
-
   return (
     <Modal
       open={open}
