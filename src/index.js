@@ -5,31 +5,31 @@ import App from "./App";
 import Login from "./Pages/Login.jsx";
 import { AlertProvider } from "./Components/Alert/AlertContext";
 
-// ✅ Define AppWrapper BEFORE rendering
+// Define AppWrapper BEFORE rendering
 const AppWrapper = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [role, setRole] = useState(null); // ✅ new state for role
+  const [role, setRole] = useState(null); // new state for role
 
   useEffect(() => {
-    // ✅ Check if token & user exist in localStorage
+    // Check if token & user exist in localStorage
     const token = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
 
     if (token && storedUser) {
       const user = JSON.parse(storedUser);
       setIsLoggedIn(true);
-      setRole(user.role); // ✅ store user role (like HR/Admin)
+      setRole(user.role); // store user role (like HR/Admin)
     }
   }, []);
 
-  // ✅ Called when login succeeds
+  // Called when login succeeds
   const handleLoginSuccess = () => {
     const user = JSON.parse(localStorage.getItem("user"));
     setIsLoggedIn(true);
     setRole(user?.role || null);
   };
 
-  // ✅ Called when logout
+  // Called when logout
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -37,12 +37,12 @@ const AppWrapper = () => {
     setRole(null);
   };
 
-  // ✅ Conditional rendering based on role
+  // Conditional rendering based on role
   if (!isLoggedIn) {
     return <Login onLoginSuccess={handleLoginSuccess} />;
   }
 
-  // ✅ Example: show different dashboards for each role
+  // Example: show different dashboards for each role
   if (role === "HR") {
     return <App onLogout={handleLogout} role="HR" />;
   } else if (role === "Admin") {
@@ -55,7 +55,6 @@ const AppWrapper = () => {
   }
 };
 
-// ✅ Render main app
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <BrowserRouter>

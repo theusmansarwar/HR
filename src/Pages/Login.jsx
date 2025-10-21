@@ -4,12 +4,17 @@ import axios from "axios";
 import logo from "../Assets/zemalt-logo.png";
 import "./login.css";
 import { useAlert } from "../Components/Alert/AlertContext";
+import { login } from "../DAL/auth";
 
 const Login = ({ onLoginSuccess }) => {
   const { showAlert } = useAlert(); 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const formData = {
+    email,
+    password,
+  };
 
   useEffect(() => {
     const savedEmail = localStorage.getItem("email");
@@ -25,11 +30,7 @@ const Login = ({ onLoginSuccess }) => {
   setLoading(true);
 
   try {
-    const response = await axios.post("http://localhost:5009/users/login", {
-      email,
-      password,
-    });
-
+    const response = await login(formData);
     const data = response.data; // ✅ define data here
 
     if (response.status === 200 && data.user) {
@@ -56,7 +57,6 @@ const Login = ({ onLoginSuccess }) => {
     setLoading(false);
   }
 };
-
 
   return (
     <Box className="login">
