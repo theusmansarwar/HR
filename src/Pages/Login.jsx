@@ -11,10 +11,6 @@ const Login = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const formData = {
-    email,
-    password,
-  };
 
   useEffect(() => {
     const savedEmail = localStorage.getItem("email");
@@ -30,11 +26,15 @@ const Login = ({ onLoginSuccess }) => {
   setLoading(true);
 
   try {
+      const formData = {
+    email,
+    password,
+  };
     const response = await login(formData);
-    const data = response.data; // ✅ define data here
+    const data = response; 
 
     if (response.status === 200 && data.user) {
-      // ✅ store token + user
+
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       localStorage.setItem("modules", JSON.stringify(data.user.modules));
