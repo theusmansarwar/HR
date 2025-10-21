@@ -38,6 +38,8 @@ import Performance from "./Pages/Categories/Appraisal";
 import Training from "./Pages/Categories/Training";
 import Fines from "./Pages/Categories/Fine";
 import Reports from "./Pages/Categories/Reports";
+import Users from "./Pages/Categories/Users";
+import Roles from "./Pages/Categories/Roles";
 
 // Menu Icon Map
 const allMenuItems = {
@@ -59,6 +61,8 @@ const allMenuItems = {
 // Pages Map
 const pageComponents = {
   Dashboard,
+  Users,
+  Roles,
   Departments,
   Designations,
   Employees,
@@ -91,9 +95,10 @@ const App = ({ onLogout }) => {
     if (user?.role) {
       // Fetch allowed modules dynamically for this role
       axios
-        .get(`/api/roles/${user.role}`) // backend should return { modules: ["Dashboard","Employees",...]}
-        .then((res) => setRoleModules(res.data.modules || []))
-        .catch((err) => console.error(err));
+  .get(`http://localhost:5009/roles/getRoleByName/${user.role}`)
+  .then((res) => setRoleModules(res.data.modules || []))
+  .catch(console.error);
+
     }
   }, []);
 

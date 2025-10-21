@@ -17,7 +17,7 @@ function Roles({ currentUser }) {
   }, []);
 
   const fetchRoles = async () => {
-    const res = await axios.get("/api/roles");
+    const res = await axios.get("/roles/getRole");
     setRoles(res.data);
   };
 
@@ -30,7 +30,7 @@ function Roles({ currentUser }) {
   };
 
   const createRole = async () => {
-    await axios.post("/api/roles", { name: roleName, modules: selectedModules });
+    await axios.post("/roles/createRole", { name: roleName, modules: selectedModules });
     setRoleName("");
     setSelectedModules([]);
     fetchRoles();

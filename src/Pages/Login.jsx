@@ -25,7 +25,7 @@ const Login = ({ onLoginSuccess }) => {
   setLoading(true);
 
   try {
-    const response = await axios.post("http://localhost:5000/users/login", {
+    const response = await axios.post("http://localhost:5009/users/login", {
       email,
       password,
     });
@@ -36,6 +36,7 @@ const Login = ({ onLoginSuccess }) => {
       // ✅ store token + user
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("modules", JSON.stringify(data.user.modules));
 
       showAlert("success", data.message || "Login successful!");
       onLoginSuccess(); // notify parent
