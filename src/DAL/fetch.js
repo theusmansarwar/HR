@@ -138,3 +138,12 @@ export const fetchPayrolls = async () => {
   };
   return invokeApi(reqObj);
 };
+
+
+export const fetchRoleByName = async (roleName) => {
+  const reqObj = {
+    path: `/roles/getRoleByName/${roleName}`,
+    method: "GET",
+  };
+  return invokeApi(reqObj);
+};

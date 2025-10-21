@@ -88,17 +88,27 @@ const App = ({ onLogout }) => {
   const location = useLocation();
   const [activeItem, setActiveItem] = useState(null);
   const [isOpen, setIsOpen] = useState(true);
-  const [roleModules, setRoleModules] = useState([]); // modules array from backend
+  // const [roleModules, setRoleModules] = useState([]); // modules array from backend
+
+  // useEffect(() => {
+  //   const user = JSON.parse(localStorage.getItem("user"));
+  //   if (user?.role) {
+  //     // Fetch allowed modules dynamically for this role
+  //     axios
+  // .get(`http://localhost:5009/roles/getRoleByName/${user.role}`)
+  // .then((res) => setRoleModules(res.data.modules || []))
+  // .catch(console.error);
+
+  //   }
+  // }, []);
+    const [roleModules, setRoleModules] = useState([]);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user?.role) {
-      // Fetch allowed modules dynamically for this role
-      axios
-  .get(`http://localhost:5009/roles/getRoleByName/${user.role}`)
-  .then((res) => setRoleModules(res.data.modules || []))
-  .catch(console.error);
-
+      fetchRoleByName(user.role)
+        .then((res) => setRoleModules(res.user.modules || []))
+        .catch(console.error);
     }
   }, []);
 
