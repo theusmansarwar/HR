@@ -20,7 +20,6 @@ import { HiUserGroup } from "react-icons/hi";
 import { IoMdListBox } from "react-icons/io";
 import { GiPayMoney } from "react-icons/gi";
 import { IoLogOut } from "react-icons/io5";
-import axios from "axios";
 
 import zemaltlogo from "./Assets/zemalt-logo.png";
 
@@ -40,6 +39,8 @@ import Fines from "./Pages/Categories/Fine";
 import Reports from "./Pages/Categories/Reports";
 import Users from "./Pages/Categories/Users";
 import Roles from "./Pages/Categories/Roles";
+import { fetchRoleByName } from "./DAL/fetch";
+
 
 // Menu Icon Map
 const allMenuItems = {
@@ -107,7 +108,7 @@ const App = ({ onLogout }) => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user?.role) {
       fetchRoleByName(user.role)
-        .then((res) => setRoleModules(res.user.modules || []))
+        .then((res) => setRoleModules(res.modules || []))
         .catch(console.error);
     }
   }, []);
