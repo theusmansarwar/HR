@@ -4,8 +4,8 @@ import AddLeaves from "../../Components/Models/AddLeaves";
 
 const Leaves = () => {
   const attributes = [
-    { id: "_id", label: "Leave ID" },
-    { id: "_id", label: "Employee ID" },
+    { id: "leaveId", label: "Leave ID" },
+    { id: "employeeId.firstName", label: "Employee" },
     { id: "leaveType", label: "Leave Type" },
     { id: "startDate", label: "Start Date" },
     { id: "endDate", label: "End Date" },
@@ -16,9 +16,7 @@ const Leaves = () => {
   const [modelType, setModelType] = useState("Add");
   const [modelData, setModelData] = useState(null);
 
-  const handleSave = (leave) => {
-    console.log("Saved leave:", leave);
-  };
+  const handleSave = (leave) => console.log("Saved leave:", leave);
 
   const { tableUI, fetchData } = useTable({
     attributes,
@@ -38,7 +36,6 @@ const Leaves = () => {
   return (
     <>
       {tableUI}
-
       <AddLeaves
         open={open}
         setOpen={setOpen}

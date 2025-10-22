@@ -83,10 +83,20 @@ export const fetchAttendance = async () => {
   return invokeApi(reqObj);
 };
 
+// export const fetchLeaves = async () => {
+//   const reqObj = {
+//     path: "/leaves/getLeaves",
+//     method: "GET",
+//   };
+//   return invokeApi(reqObj);
+// };
 export const fetchLeaves = async () => {
   const reqObj = {
     path: "/leaves/getLeaves",
     method: "GET",
+    headers: {
+      "Cache-Control": "no-cache",
+    },
   };
   return invokeApi(reqObj);
 };

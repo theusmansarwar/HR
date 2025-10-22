@@ -8,10 +8,9 @@ import {
   MenuItem,
   Grid,
 } from "@mui/material";
-
 import { createTraining } from "../../DAL/create";
 import { updateTraining } from "../../DAL/edit";
-import { fetchEmployees } from "../../DAL/fetch"; 
+import { fetchEmployees } from "../../DAL/fetch";
 
 const style = {
   position: "absolute",
@@ -27,7 +26,14 @@ const style = {
 
 const statusOptions = ["Pending", "In Progress", "Completed"];
 
-export default function AddTraining({ open, setOpen, Modeltype, Modeldata, onResponse, onSave }) {
+export default function AddTraining({
+  open,
+  setOpen,
+  Modeltype,
+  Modeldata,
+  onSave,
+  onResponse,
+}) {
   const [form, setForm] = React.useState({
     employeeId: "",
     trainingName: "",
@@ -39,34 +45,54 @@ export default function AddTraining({ open, setOpen, Modeltype, Modeldata, onRes
   });
 
   const [employees, setEmployees] = React.useState([]);
+  const [id, setId] = React.useState("");
 
+  // ✅ Fetch employees once
   React.useEffect(() => {
-    // Fetch employees from API
-    const getEmployees = async () => {
+    const loadEmployees = async () => {
       try {
-       const res = await fetchEmployees();
-      setEmployees(res?.data || []);
-      } catch (err) {
-        console.error("Error fetching employees:", err);
+        const res = await fetchEmployees();
+        setEmployees(res?.data || []);
+      } catch (error) {
+        console.error("Error fetching employees:", error);
       }
     };
-    getEmployees();
+    loadEmployees();
   }, []);
 
+  // ✅ Prefill when updating
   React.useEffect(() => {
-    if (Modeldata) {
+    if (Modeltype === "Update" && Modeldata) {
       setForm({
-        employeeId: Modeldata?.employeeId || "",
+        employeeId: Modeldata?.employeeId?._id || "",
         trainingName: Modeldata?.trainingName || "",
-        startDate: Modeldata?.startDate || "",
-        endDate: Modeldata?.endDate || "",
+        startDate: Modeldata?.startDate
+          ? Modeldata.startDate.split("T")[0]
+          : "",
+        endDate: Modeldata?.endDate ? Modeldata.endDate.split("T")[0] : "",
         certificate: Modeldata?.certificate || null,
         status: Modeldata?.status || "Pending",
         archive: Modeldata?.archive || false,
-        _id: Modeldata?._id || null,
       });
+      setId(Modeldata?._id || "");
     }
-  }, [Modeldata]);
+  }, [Modeldata, Modeltype]);
+
+  // ✅ Reset when opening for Add
+  React.useEffect(() => {
+    if (open && Modeltype === "Add") {
+      setForm({
+        employeeId: "",
+        trainingName: "",
+        startDate: "",
+        endDate: "",
+        certificate: null,
+        status: "Pending",
+        archive: false,
+      });
+      setId("");
+    }
+  }, [open, Modeltype]);
 
   const handleClose = () => setOpen(false);
 
@@ -82,56 +108,76 @@ export default function AddTraining({ open, setOpen, Modeltype, Modeldata, onRes
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();  
-
+    e.preventDefault();
     try {
       let response;
-
       if (Modeltype === "Add") {
         response = await createTraining(form);
       } else {
-        response = await updateTraining(form._id, form);
+        response = await updateTraining(id, form);
       }
 
-      if (response?.status === 200 || response?.status === 201) {
-        if (onSave) onSave(response.data || form);
-        if (onResponse)
-          onResponse({ message: `${Modeltype} Training Successfully!` });
-        setOpen(false); 
+      if (response?.data) {
+        onSave(response.data);
+        onResponse({
+          messageType: "success",
+          message: `${Modeltype} Training Successfully!`,
+        });
       } else {
-        if (onResponse) onResponse({ message: "Failed to save training" });
+        onResponse({
+          messageType: "error",
+          message: "Failed to save training",
+        });
       }
+
+      setOpen(false);
     } catch (error) {
       console.error("Training submit error:", error);
-      if (onResponse) onResponse({ message: "Error while saving training" });
+      onResponse({
+        messageType: "error",
+        message: "Error while saving training",
+      });
     }
   };
 
   return (
     <Modal open={open} onClose={handleClose}>
       <Box sx={style}>
-        <Typography variant="h6">{Modeltype} Training</Typography>
-        <Grid container spacing={2} mt={1}>
-          {/* Employees Dropdown */}
+        <Typography variant="h6" mb={2}>
+          {Modeltype} Training
+        </Typography>
+
+        {Modeldata && Modeltype === "Update" && (
+          <Grid container spacing={2} mb={2}>
+            <Grid item xs={6}>
+              <TextField
+                label="Training ID"
+                value={Modeldata._id}
+                fullWidth
+                disabled
+              />
+            </Grid>
+          </Grid>
+        )}
+
+        <Grid container spacing={2}>
+          {/* Employee Dropdown */}
           <Grid item xs={6}>
             <TextField
               select
-              margin="dense"
-              label="Employee"
+              label="Select Employee"
               name="employeeId"
               fullWidth
+              required
               value={form.employeeId}
               onChange={handleChange}
             >
-              {employees.length > 0 ? (
-                employees.map((emp) => (
-                  <MenuItem key={emp._id} value={emp._id}>
-                    {emp.employeeId} - {emp.firstName} {emp.lastName}
-                  </MenuItem>
-                ))
-              ) : (
-                <MenuItem disabled>Loading employees...</MenuItem>
-              )}
+              <MenuItem value="">Select Employee</MenuItem>
+              {employees.map((emp) => (
+                <MenuItem key={emp._id} value={emp._id}>
+                  {emp.employeeId} - {emp.firstName} {emp.lastName}
+                </MenuItem>
+              ))}
             </TextField>
           </Grid>
 
@@ -141,33 +187,57 @@ export default function AddTraining({ open, setOpen, Modeltype, Modeldata, onRes
               label="Training Name"
               name="trainingName"
               fullWidth
+              required
               value={form.trainingName}
               onChange={handleChange}
             />
           </Grid>
 
-          {/* Start & End Dates */}
+          {/* Start Date */}
           <Grid item xs={6}>
             <TextField
+              type="date"
               label="Start Date"
               name="startDate"
-              type="date"
               fullWidth
+              required
               InputLabelProps={{ shrink: true }}
               value={form.startDate}
               onChange={handleChange}
             />
           </Grid>
+
+          {/* End Date */}
           <Grid item xs={6}>
             <TextField
+              type="date"
               label="End Date"
               name="endDate"
-              type="date"
               fullWidth
+              required
               InputLabelProps={{ shrink: true }}
               value={form.endDate}
               onChange={handleChange}
             />
+          </Grid>
+
+          {/* Status */}
+          <Grid item xs={6}>
+            <TextField
+              select
+              label="Status"
+              name="status"
+              fullWidth
+              required
+              value={form.status}
+              onChange={handleChange}
+            >
+              {statusOptions.map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </TextField>
           </Grid>
 
           {/* Archive */}
@@ -185,13 +255,19 @@ export default function AddTraining({ open, setOpen, Modeltype, Modeldata, onRes
             </TextField>
           </Grid>
 
-          {/* Certificate */}
+          {/* Certificate Upload */}
           <Grid item xs={6}>
             <Button variant="contained" component="label" fullWidth>
               Upload Certificate
-              <input type="file" hidden name="certificate" onChange={handleChange} />
+              <input
+                type="file"
+                hidden
+                name="certificate"
+                onChange={handleChange}
+              />
             </Button>
           </Grid>
+
           {form.certificate && (
             <Grid item xs={6}>
               <Button
@@ -210,27 +286,9 @@ export default function AddTraining({ open, setOpen, Modeltype, Modeldata, onRes
               </Button>
             </Grid>
           )}
-
-          {/* Status */}
-          <Grid item xs={6}>
-            <TextField
-              select
-              label="Status"
-              name="status"
-              fullWidth
-              value={form.status}
-              onChange={handleChange}
-            >
-              {statusOptions.map((option, index) => (
-                <MenuItem key={index} value={option}>
-                  {option}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
         </Grid>
 
-        <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
+        <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
           <Button onClick={handleClose} variant="contained" color="error">
             Cancel
           </Button>

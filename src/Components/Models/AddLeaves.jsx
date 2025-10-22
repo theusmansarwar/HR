@@ -1,14 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  MenuItem,
-} from "@mui/material";
-
+import { Box, Button, Typography, TextField, MenuItem, Grid, Modal } from "@mui/material";
 import { createLeaves } from "../../DAL/create";
 import { updateLeave } from "../../DAL/edit";
 import { fetchEmployees } from "../../DAL/fetch";
@@ -16,182 +7,200 @@ import { fetchEmployees } from "../../DAL/fetch";
 const leaveTypes = ["Casual", "Sick", "Annual", "Maternity", "Paternity"];
 const leaveStatus = ["Pending", "Approved", "Rejected"];
 
-const AddLeave = ({ open, setOpen, Modeltype, Modeldata, onSave, onResponse }) => {
-  const [leave, setLeave] = useState({
-    _id: "",
+const style = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: "60%",
+  bgcolor: "background.paper",
+  boxShadow: 24,
+  p: 4,
+  borderRadius: "12px",
+};
+
+export default function AddLeaves({ open, setOpen, Modeltype, Modeldata, onSave, onResponse }) {
+  const [form, setForm] = useState({
     employeeId: "",
     leaveType: "",
     startDate: "",
     endDate: "",
     status: "Pending",
+    reason: "",
+    attachmentLinks: [],
   });
-
   const [employees, setEmployees] = useState([]);
+  const [id, setId] = useState("");
 
-  // ✅ Fetch Employees
   useEffect(() => {
     const loadEmployees = async () => {
       try {
         const res = await fetchEmployees();
         setEmployees(res?.data || []);
       } catch (err) {
-        console.error("Error fetching employees:", err);
+        console.error(err);
       }
     };
     loadEmployees();
   }, []);
 
- // ✅ Fetch Employees
-useEffect(() => {
-  const loadEmployees = async () => {
-    try {
-      const res = await fetchEmployees();
-      const employeesData = res?.data || [];
-      setEmployees(employeesData);
-
-      // Only after employees are loaded, set leave for update
-      if (Modeltype === "Update" && Modeldata) {
-        const selectedEmployeeId = typeof Modeldata.employeeId === "object"
-          ? Modeldata.employeeId?._id
-          : Modeldata.employeeId;
-
-        // Make sure this employee exists in the fetched employees list
-        const exists = employeesData.find(emp => emp._id === selectedEmployeeId);
-
-        setLeave({
-          _id: Modeldata?._id || "",
-          employeeId: exists ? selectedEmployeeId : "", // only select if exists
-          leaveType: Modeldata?.leaveType || "",
-          startDate: Modeldata?.startDate?.slice(0, 10) || "",
-          endDate: Modeldata?.endDate?.slice(0, 10) || "",
-          status: Modeldata?.status || "Pending",
-        });
-      }
-    } catch (err) {
-      console.error("Error fetching employees:", err);
+  useEffect(() => {
+    if (Modeldata) {
+      setForm({
+        employeeId: Modeldata.employeeId?._id || Modeldata.employeeId || "",
+        leaveType: Modeldata.leaveType || "",
+        startDate: Modeldata.startDate ? Modeldata.startDate.split("T")[0] : "",
+        endDate: Modeldata.endDate ? Modeldata.endDate.split("T")[0] : "",
+        status: Modeldata.status || "Pending",
+        reason: Modeldata.reason || "",
+        attachmentLinks: Modeldata.attachmentLinks || [],
+      });
+      setId(Modeldata._id || "");
+    } else {
+      setForm({
+        employeeId: "",
+        leaveType: "",
+        startDate: "",
+        endDate: "",
+        status: "Pending",
+        reason: "",
+        attachmentLinks: [],
+      });
+      setId("");
     }
-  };
-  loadEmployees();
-}, [Modeltype, Modeldata, open]);
-
+  }, [Modeldata]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setLeave((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // ✅ prevent page reload
+    e.preventDefault();
     try {
       let response;
       if (Modeltype === "Add") {
-        response = await createLeaves(leave);
+        response = await createLeaves(form);
       } else {
-        response = await updateLeave(leave._id, leave);
+        response = await updateLeave(id, form);
       }
 
-      if (response?.status === 200 || response?.status === 201) {
-        if (onSave) onSave(response.data || leave);
-        if (onResponse) onResponse({ message: `${Modeltype} Leave Successfully!` });
-        setOpen(false); // ✅ close modal always on success
+      if (response?.data) {
+        onSave(response.data);
+        onResponse({ message: `${Modeltype} Leave successfully!` });
+        setOpen(false);
       } else {
-        if (onResponse) onResponse({ message: "Failed to save leave" });
+        onResponse({ message: "Failed to save leave" });
       }
-    } catch (error) {
-      console.error("Submit error:", error);
-      if (onResponse) onResponse({ message: "Error while saving leave" });
+    } catch (err) {
+      console.error(err);
+      onResponse({ message: "Error saving leave" });
     }
   };
 
   return (
-    <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
-      <form onSubmit={handleSubmit}>
-        <DialogTitle>{Modeltype === "Add" ? "Add Leave" : "Update Leave"}</DialogTitle>
-        <DialogContent>
-          {/* ✅ Employee Dropdown */}
-          <TextField
-            select
-            margin="dense"
-            label="Employee"
-            name="employeeId"
-            fullWidth
-            value={leave.employeeId}
-            onChange={handleChange}
-          >
-            {employees.length > 0 ? (
-              employees.map((emp) => (
+    <Modal open={open} onClose={() => setOpen(false)}>
+      <Box sx={style}>
+        <Typography variant="h6" mb={2}>
+          {Modeltype} Leave
+        </Typography>
+
+        {Modeldata && (
+          <TextField label="Leave ID" fullWidth disabled value={Modeldata.leaveId} sx={{ mb: 2 }} />
+        )}
+
+        <Grid container spacing={2}>
+          <Grid item xs={6}>
+            <TextField
+              select
+              label="Employee"
+              name="employeeId"
+              fullWidth
+              required
+              value={form.employeeId}
+              onChange={handleChange}
+            >
+              {employees.map((emp) => (
                 <MenuItem key={emp._id} value={emp._id}>
-                  {emp.employeeId} - {emp.firstName} {emp.lastName}
+                  {emp.firstName} {emp.lastName} ({emp.email})
                 </MenuItem>
-              ))
-            ) : (
-              <MenuItem disabled>No employees found</MenuItem>
-            )}
-          </TextField>
+              ))}
+            </TextField>
+          </Grid>
 
-          <TextField
-            select
-            margin="dense"
-            label="Leave Type"
-            name="leaveType"
-            value={leave.leaveType}
-            onChange={handleChange}
-            fullWidth
-          >
-            {leaveTypes.map((type, index) => (
-              <MenuItem key={index} value={type}>
-                {type}
-              </MenuItem>
-            ))}
-          </TextField>
+          <Grid item xs={6}>
+            <TextField
+              select
+              label="Leave Type"
+              name="leaveType"
+              fullWidth
+              required
+              value={form.leaveType}
+              onChange={handleChange}
+            >
+              {leaveTypes.map((type) => (
+                <MenuItem key={type} value={type}>{type}</MenuItem>
+              ))}
+            </TextField>
+          </Grid>
 
-          <TextField
-            margin="dense"
-            label="Start Date"
-            name="startDate"
-            type="date"
-            value={leave.startDate}
-            onChange={handleChange}
-            fullWidth
-            InputLabelProps={{ shrink: true }}
-          />
-          <TextField
-            margin="dense"
-            label="End Date"
-            name="endDate"
-            type="date"
-            value={leave.endDate}
-            onChange={handleChange}
-            fullWidth
-            InputLabelProps={{ shrink: true }}
-          />
-          <TextField
-            select
-            margin="dense"
-            label="Status"
-            name="status"
-            value={leave.status}
-            onChange={handleChange}
-            fullWidth 
-          >
-            {leaveStatus.map((status, index) => (
-              <MenuItem key={index} value={status}>
-                {status}
-              </MenuItem>
-            ))}
-          </TextField>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)} color="secondary">
-            Cancel
-          </Button>
-          <Button type="submit" color="primary" variant="contained">
-            {Modeltype === "Add" ? "Add" : "Update"}
-          </Button>
-        </DialogActions>
-      </form>
-    </Dialog>
+          <Grid item xs={6}>
+            <TextField
+              type="date"
+              label="Start Date"
+              name="startDate"
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+              required
+              value={form.startDate}
+              onChange={handleChange}
+            />
+          </Grid>
+
+          <Grid item xs={6}>
+            <TextField
+              type="date"
+              label="End Date"
+              name="endDate"
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+              required
+              value={form.endDate}
+              onChange={handleChange}
+            />
+          </Grid>
+
+          <Grid item xs={6}>
+            <TextField
+              select
+              label="Status"
+              name="status"
+              fullWidth
+              value={form.status}
+              onChange={handleChange}
+            >
+              {leaveStatus.map((s) => (
+                <MenuItem key={s} value={s}>{s}</MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+
+          <Grid item xs={6}>
+            <TextField
+              label="Reason"
+              name="reason"
+              fullWidth
+              value={form.reason}
+              onChange={handleChange}
+            />
+          </Grid>
+        </Grid>
+
+        <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
+          <Button onClick={() => setOpen(false)} variant="contained" color="error">Cancel</Button>
+          <Button onClick={handleSubmit} variant="contained" color="primary">Submit</Button>
+        </Box>
+      </Box>
+    </Modal>
   );
-};
-
-export default AddLeave;
+}

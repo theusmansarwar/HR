@@ -1,5 +1,4 @@
-// src/Components/Models/AddApplication.jsx
-import * as React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Button,
@@ -12,7 +11,7 @@ import {
 
 import { createApplications } from "../../DAL/create";
 import { updateApplications } from "../../DAL/edit";
-import { fetchJobs } from "../../DAL/fetch"; // ✅ Added to get job list
+import { fetchJobs } from "../../DAL/fetch";
 
 const style = {
   position: "absolute",
@@ -31,11 +30,12 @@ const statuses = ["Pending", "Shortlisted", "Rejected", "Hired"];
 export default function AddApplication({
   open,
   setOpen,
-  Modeltype,
-  Modeldata,
+  modalType, // ✅ fixed naming
+  modalData,
   onResponse,
+  onSave,
 }) {
-  const [form, setForm] = React.useState({
+  const [form, setForm] = useState({
     jobId: "",
     applicantName: "",
     applicantEmail: "",
@@ -46,17 +46,15 @@ export default function AddApplication({
     interviewDate: "",
     remarks: "",
   });
-  const [id, setId] = React.useState("");
-  const [jobs, setJobs] = React.useState([]); // ✅ for dropdown options
+  const [id, setId] = useState("");
+  const [jobs, setJobs] = useState([]);
 
-  // ✅ Fetch all jobs on mount
-  React.useEffect(() => {
+  // ✅ Fetch jobs for dropdown
+  useEffect(() => {
     const getJobs = async () => {
       try {
         const res = await fetchJobs();
-        if (res?.data) {
-          setJobs(res.data);
-        }
+        if (res?.data) setJobs(res.data);
       } catch (err) {
         console.error("Error fetching jobs:", err);
       }
@@ -64,65 +62,77 @@ export default function AddApplication({
     getJobs();
   }, []);
 
-  React.useEffect(() => {
-    if (Modeldata) {
+  // ✅ Initialize form whenever modalType or modalData changes
+  useEffect(() => {
+    if (modalType === "Add") {
       setForm({
-        jobId: Modeldata?.jobId?._id || Modeldata?.jobId || "",
-        applicantName: Modeldata?.applicantName || "",
-        applicantEmail: Modeldata?.applicantEmail || "",
-        applicantPhone: Modeldata?.applicantPhone || "",
-        resume: Modeldata?.resume || null,
-        applicationDate: Modeldata?.applicationDate || "",
-        applicationStatus: Modeldata?.applicationStatus || "Pending",
-        interviewDate: Modeldata?.interviewDate || "",
-        remarks: Modeldata?.remarks || "",
+        jobId: "",
+        applicantName: "",
+        applicantEmail: "",
+        applicantPhone: "",
+        resume: null,
+        applicationDate: "",
+        applicationStatus: "Pending",
+        interviewDate: "",
+        remarks: "",
       });
-      setId(Modeldata?._id || "");
+      setId("");
+    } else if (modalType === "Update" && modalData) {
+      setForm({
+        jobId: modalData?.jobId?._id || modalData?.jobId || "",
+        applicantName: modalData?.applicantName || "",
+        applicantEmail: modalData?.applicantEmail || "",
+        applicantPhone: modalData?.applicantPhone || "",
+        resume: modalData?.resume || null,
+        applicationDate: modalData?.applicationDate || "",
+        applicationStatus: modalData?.applicationStatus || "Pending",
+        interviewDate: modalData?.interviewDate || "",
+        remarks: modalData?.remarks || "",
+      });
+      setId(modalData?._id || "");
     }
-  }, [Modeldata]);
+  }, [modalType, modalData]);
 
   const handleClose = () => setOpen(false);
 
-  const handleChange = (e) => {
+    const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === "resume") {
-      setForm((prev) => ({ ...prev, resume: files[0] }));
+    if (name === "resume" && files.length > 0) {
+      setForm({ ...form, resume: files[0].name }); // store only file name
     } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
+      setForm({ ...form, [name]: value });
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    try {
+      let response;
+      if (modalType === "Add") {
+        response = await createApplications(form);
+      } else if (modalType === "Update") {
+        response = await updateApplications(id, form);
+      }
 
-    let response;
-    if (Modeltype === "Add") {
-      response = await createApplications(form);
-    } else {
-      response = await updateApplications(id, form);
+      if (response?.status === 201 || response?.status === 200) {
+        onResponse({ messageType: "success", message: response.message });
+        if (onSave) onSave(response.data);
+      } else {
+        onResponse({ messageType: "error", message: response.message });
+      }
+      setOpen(false);
+    } catch (err) {
+      console.error(err);
+      onResponse({ messageType: "error", message: err.message });
     }
-
-    if (response?.status === 201 || response?.status === 200) {
-      onResponse({
-        messageType: "success",
-        message: response.message,
-      });
-    } else {
-      onResponse({
-        messageType: "error",
-        message: response.message,
-      });
-    }
-
-    setOpen(false);
   };
 
   return (
     <Modal open={open} onClose={handleClose}>
       <Box sx={style}>
-        <Typography variant="h6">{Modeltype} Application</Typography>
+        <Typography variant="h6">{modalType} Application</Typography>
         <Grid container spacing={2} mt={1}>
-          {/* ✅ Job dropdown */}
+          {/* Job dropdown */}
           <Grid item xs={6}>
             <TextField
               select
@@ -140,6 +150,7 @@ export default function AddApplication({
             </TextField>
           </Grid>
 
+          {/* Applicant Name */}
           <Grid item xs={6}>
             <TextField
               label="Applicant Name"
@@ -149,6 +160,8 @@ export default function AddApplication({
               onChange={handleChange}
             />
           </Grid>
+
+          {/* Applicant Email */}
           <Grid item xs={6}>
             <TextField
               label="Applicant Email"
@@ -158,6 +171,8 @@ export default function AddApplication({
               onChange={handleChange}
             />
           </Grid>
+
+          {/* Applicant Phone */}
           <Grid item xs={6}>
             <TextField
               label="Applicant Phone"
@@ -168,6 +183,7 @@ export default function AddApplication({
             />
           </Grid>
 
+          {/* Resume Upload */}
           <Grid item xs={6}>
             <Button variant="contained" component="label" fullWidth>
               Upload Resume
@@ -192,6 +208,7 @@ export default function AddApplication({
             )}
           </Grid>
 
+          {/* Application Date */}
           <Grid item xs={6}>
             <TextField
               type="date"
@@ -204,6 +221,7 @@ export default function AddApplication({
             />
           </Grid>
 
+          {/* Status */}
           <Grid item xs={6}>
             <TextField
               select
@@ -213,14 +231,15 @@ export default function AddApplication({
               value={form.applicationStatus}
               onChange={handleChange}
             >
-              {statuses.map((status, index) => (
-                <MenuItem key={index} value={status}>
+              {statuses.map((status) => (
+                <MenuItem key={status} value={status}>
                   {status}
                 </MenuItem>
               ))}
             </TextField>
           </Grid>
 
+          {/* Interview Date */}
           <Grid item xs={6}>
             <TextField
               type="date"
@@ -233,6 +252,7 @@ export default function AddApplication({
             />
           </Grid>
 
+          {/* Remarks */}
           <Grid item xs={12}>
             <TextField
               label="Remarks"
@@ -246,6 +266,7 @@ export default function AddApplication({
           </Grid>
         </Grid>
 
+        {/* Buttons */}
         <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
           <Button onClick={handleClose} variant="contained" color="error">
             Cancel

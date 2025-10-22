@@ -89,34 +89,41 @@ export default function AddEmployee({
     fetchData();
   }, []);
 
-  React.useEffect(() => {
-    if (Modeldata) {
-      setForm({
-        employeeId: Modeldata?.employeeId || "",
-        firstName: Modeldata?.firstName || "",
-        lastName: Modeldata?.lastName || "",
-        email: Modeldata?.email || "",
-        phoneNumber: Modeldata?.phoneNumber || "",
-        dateOfBirth: Modeldata?.dateOfBirth || "",
-        gender: Modeldata?.gender || "",
-        cnic: Modeldata?.cnic || "",
-        departmentId: Modeldata?.departmentId || "",
-        designationId: Modeldata?.designationId || "",
-        dateOfJoining: Modeldata?.dateOfJoining || "",
-        employeementType: Modeldata?.employeementType || "",
-        status: Modeldata?.status || "Active",
-        salary: Modeldata?.salary || "",
-        bankAccountNo: Modeldata?.bankAccountNo || "",
-        address: Modeldata?.address || "",
-        emergencyContactName: Modeldata?.emergencyContactName || "",
-        emergencyContactNo: Modeldata?.emergencyContactNo || "",
-      });
-      setId(Modeldata?._id || "");
-      if (Modeldata?.profileImage) {
-        setImagePreview(Modeldata.profileImage);
-      }
+React.useEffect(() => {
+  if (Modeldata) {
+    setForm({
+      employeeId: Modeldata?.employeeId || "",
+      firstName: Modeldata?.firstName || "",
+      lastName: Modeldata?.lastName || "",
+      email: Modeldata?.email || "",
+      phoneNumber: Modeldata?.phoneNumber || "",
+      // :white_check_mark: Format the date properly
+      dateOfBirth: Modeldata?.dateOfBirth
+        ? Modeldata.dateOfBirth.split("T")[0]
+        : "",
+      gender: Modeldata?.gender || "",
+      cnic: Modeldata?.cnic || "",
+      departmentId:
+        Modeldata?.departmentId?._id || Modeldata?.departmentId || "",
+      designationId:
+        Modeldata?.designationId?._id || Modeldata?.designationId || "",
+      dateOfJoining: Modeldata?.dateOfJoining
+        ? Modeldata.dateOfJoining.split("T")[0]
+        : "",
+      employeementType: Modeldata?.employeementType || "",
+      status: Modeldata?.status || "Active",
+      salary: Modeldata?.salary || "",
+      bankAccountNo: Modeldata?.bankAccountNo || "",
+      address: Modeldata?.address || "",
+      emergencyContactName: Modeldata?.emergencyContactName || "",
+      emergencyContactNo: Modeldata?.emergencyContactNo || "",
+    });
+    setId(Modeldata?._id || "");
+    if (Modeldata?.profileImage) {
+      setImagePreview(Modeldata.profileImage);
     }
-  }, [Modeldata]);
+  }
+}, [Modeldata]);
 
   const handleClose = () => setOpen(false);
 

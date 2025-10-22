@@ -1,12 +1,13 @@
- // src/Pages/Applications.jsx
+// src/Pages/Applications.jsx
 import React, { useState } from "react";
 import { useTable } from "../../Components/Models/useTable";
 import AddApplication from "../../Components/Models/AddApplications";
 
 const Applications = () => {
+  // Table columns/attributes
   const attributes = [
-    { id: "_id", label: "Application ID" },
-    { id: "_id", label: "Job ID" },
+    { id: "applicationId", label: "Application ID" },
+    { id: "jobId", label: "Job ID" },
     { id: "applicantName", label: "Applicant Name" },
     { id: "applicantEmail", label: "Applicant Email" },
     { id: "applicantPhone", label: "Applicant Phone" },
@@ -17,25 +18,29 @@ const Applications = () => {
     { id: "remarks", label: "Remarks" },
   ];
 
+  // Modal state
   const [open, setOpen] = useState(false);
-  const [modelType, setModelType] = useState("Add");
-  const [modelData, setModelData] = useState(null);
+  const [modalType, setModalType] = useState("Add");
+  const [modalData, setModalData] = useState(null);
 
+  // Save handler (called after add/update)
   const handleSave = (application) => {
-    console.log("Saved attendance:", application);
+    console.log("Saved application:", application);
+    // Optional: refresh table data here
   };
 
+  // Initialize table UI
   const { tableUI } = useTable({
     attributes,
     tableType: "Applications",
     onAdd: () => {
-      setModelType("Add");
-      setModelData(null);
+      setModalType("Add");
+      setModalData(null);
       setOpen(true);
     },
     onEdit: (rowData) => {
-      setModelType("Update");
-      setModelData(rowData);
+      setModalType("Update");
+      setModalData(rowData);
       setOpen(true);
     },
   });
@@ -47,8 +52,8 @@ const Applications = () => {
       <AddApplication
         open={open}
         setOpen={setOpen}
-        Modeltype={modelType}
-        Modeldata={modelData}
+        modalType={modalType}
+        modalData={modalData}
         onSave={handleSave}
         onResponse={(res) => console.log(res.message)}
       />

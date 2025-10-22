@@ -4,20 +4,25 @@ import AddPayroll from "../../Components/Models/AddPayroll";
 
 const Payroll = () => {
   const attributes = [
-    { id: "_id", label: "Payroll ID" },
+    { id: "payrollId", label: "Payroll ID" },
     { id: "employeeId.firstName", label: "Employee Name" },
     { id: "month", label: "Month" },
+    { id: "year", label: "Year" },
     { id: "basicSalary", label: "Basic Salary" },
+    { id: "allowances", label: "Allowances" },
     { id: "deductions", label: "Deductions" },
     { id: "overtime", label: "Overtime" },
+    { id: "bonuses", label: "Bonuses" },
     { id: "netSalary", label: "Net Salary" },
+    { id: "paymentMethod", label: "Payment Method" },
+    { id: "status", label: "Status" },
+    { id: "paymentDate", label: "Payment Date" },
   ];
 
   const [open, setOpen] = useState(false);
   const [modelType, setModelType] = useState("Add");
   const [modelData, setModelData] = useState(null);
 
-  // Simple save handler — connect this later to DAL (createPayroll / updatePayroll)
   const handleSave = (payroll) => {
     console.log("Saved payroll:", payroll);
   };
@@ -48,7 +53,7 @@ const Payroll = () => {
         Modeldata={modelData}
         onSave={(data) => {
           handleSave(data);
-          fetchData();  
+          fetchData(); 
         }}
         onResponse={(res) => console.log(res.message)}
       />

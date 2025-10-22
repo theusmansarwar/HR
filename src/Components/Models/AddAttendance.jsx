@@ -1,16 +1,8 @@
 import * as React from "react";
-import {
-  Box,
-  Button,
-  Typography,
-  Modal,
-  TextField,
-  Grid,
-  MenuItem,
-} from "@mui/material";
-import { createAttendance } from "../../DAL/create"; 
-import { updateAttendance } from "../../DAL/edit";
+import { Box, Button, Typography, Modal, TextField, MenuItem, Grid } from "@mui/material";
+import { createAttendance} from "../../DAL/create";
 import { fetchEmployees } from "../../DAL/fetch";
+import { updateAttendance } from "../../DAL/edit";
 import { useAlert } from "../Alert/AlertContext";
 
 const style = {
@@ -25,23 +17,14 @@ const style = {
   borderRadius: "12px",
 };
 
-const statuses = ["Present", "Absent", "Late", "On Leave"];
+const statuses = ["Present", "Absent", "Leave", "Late", "Half Day"];
 const shifts = ["Morning", "Evening", "Night"];
 
-export default function AddAttendance({
-  open,
-  setOpen,
-  Modeltype,
-  Modeldata,
-  onResponse,
-  onSave,
-}) {
+export default function AddAttendance({ open, setOpen, Modeltype, Modeldata, onSave, onResponse }) {
   const { showAlert } = useAlert();
-
   const [form, setForm] = React.useState({
     attendanceId: "",
     employeeId: "",
-    archive: "No",
     date: "",
     status: "Present",
     checkInTime: "",
@@ -49,15 +32,15 @@ export default function AddAttendance({
     shiftName: "",
     overtimeHours: 0,
   });
-  const [id, setId] = React.useState("");
   const [employees, setEmployees] = React.useState([]);
+  const [id, setId] = React.useState("");
 
-  // ✅ Fetch Employees
+  // Fetch employees dropdown
   React.useEffect(() => {
     const loadEmployees = async () => {
       try {
         const res = await fetchEmployees();
-        if (res?.data) setEmployees(res.data);
+        setEmployees(res?.data || []);
       } catch (err) {
         console.error("Error fetching employees:", err);
       }
@@ -65,24 +48,18 @@ export default function AddAttendance({
     loadEmployees();
   }, []);
 
-  // ✅ Update form when editing
+  // Prefill form for edit
   React.useEffect(() => {
     if (Modeldata) {
-      // Normalize employeeId (object vs string)
-      const selectedEmployeeId =
-        typeof Modeldata.employeeId === "object"
-          ? Modeldata.employeeId._id
-          : Modeldata.employeeId;
+      const selectedEmployeeId = typeof Modeldata.employeeId === "object"
+        ? Modeldata.employeeId._id
+        : Modeldata.employeeId;
 
-      // Format date for <input type="date">
-      const formattedDate = Modeldata.date
-        ? Modeldata.date.split("T")[0]
-        : "";
+      const formattedDate = Modeldata.date ? Modeldata.date.split("T")[0] : "";
 
       setForm({
         attendanceId: Modeldata.attendanceId || "",
         employeeId: selectedEmployeeId || "",
-        archive: Modeldata.archive || "No",
         date: formattedDate,
         status: Modeldata.status || "Present",
         checkInTime: Modeldata.checkInTime || "",
@@ -90,14 +67,11 @@ export default function AddAttendance({
         shiftName: Modeldata.shiftName || "",
         overtimeHours: Modeldata.overtimeHours || 0,
       });
-
       setId(Modeldata._id || "");
     } else {
-      // Reset form for Add
       setForm({
         attendanceId: "",
         employeeId: "",
-        archive: "No",
         date: "",
         status: "Present",
         checkInTime: "",
@@ -112,18 +86,14 @@ export default function AddAttendance({
   const handleClose = () => setOpen(false);
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? (checked ? "Yes" : "No") : value,
-    }));
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    let response;
-
     try {
+      let response;
       if (Modeltype === "Add") {
         response = await createAttendance(form);
       } else {
@@ -133,68 +103,50 @@ export default function AddAttendance({
       if (response?.status === 200 || response?.status === 201) {
         showAlert("success", response.message || `${Modeltype} successful`);
         onSave?.(response.data);
-        onResponse?.({
-          messageType: "success",
-          message: response.message || `${Modeltype} successful`,
-        });
+        onResponse?.({ messageType: "success", message: response.message || `${Modeltype} successful` });
       } else {
         showAlert("error", response.message || "Something went wrong");
-        onResponse?.({
-          messageType: "error",
-          message: response.message || "Something went wrong",
-        });
+        onResponse?.({ messageType: "error", message: response.message || "Something went wrong" });
       }
+      setOpen(false);
     } catch (error) {
       console.error("Attendance save error:", error);
       showAlert("error", "Something went wrong. Try again later.");
-      onResponse?.({
-        messageType: "error",
-        message: "Something went wrong. Try again later.",
-      });
+      onResponse?.({ messageType: "error", message: "Something went wrong. Try again later." });
     }
-
-    setOpen(false);
   };
 
   return (
     <Modal open={open} onClose={handleClose}>
       <Box sx={style}>
-        <Typography variant="h6">{Modeltype} Attendance</Typography>
-        <Grid container spacing={2} mt={1}>
-          <Grid item xs={6}>
-            <TextField
-              label="Attendance ID"
-              name="attendanceId"
-              fullWidth
-              value={form.attendanceId}
-              onChange={handleChange}
-            />
+        <Typography variant="h6" mb={2}>{Modeltype} Attendance</Typography>
+
+        {Modeldata && (
+          <Grid container spacing={2} mb={2}>
+            <Grid item xs={6}>
+              <TextField label="Attendance ID" value={Modeldata.attendanceId} fullWidth disabled />
+            </Grid>
           </Grid>
+        )}
+
+        <Grid container spacing={2}>
           <Grid item xs={6}>
             <TextField
               select
               label="Employee"
               name="employeeId"
               fullWidth
+              required
               value={form.employeeId}
               onChange={handleChange}
             >
+              <MenuItem value="">Select Employee</MenuItem>
               {employees.map((emp) => (
                 <MenuItem key={emp._id} value={emp._id}>
                   {emp.employeeId} - {emp.firstName} {emp.lastName}
                 </MenuItem>
               ))}
             </TextField>
-          </Grid>
-
-          <Grid item xs={6} display="flex" alignItems="center" gap={1}>
-            <input
-              type="checkbox"
-              name="archive"
-              checked={form.archive === "Yes"}
-              onChange={handleChange}
-            />
-            <Typography>Archive Attendance</Typography>
           </Grid>
 
           <Grid item xs={6}>
@@ -204,84 +156,40 @@ export default function AddAttendance({
               name="date"
               InputLabelProps={{ shrink: true }}
               fullWidth
+              required
               value={form.date}
               onChange={handleChange}
             />
           </Grid>
 
           <Grid item xs={6}>
-            <TextField
-              select
-              label="Status"
-              name="status"
-              fullWidth
-              value={form.status}
-              onChange={handleChange}
-            >
-              {statuses.map((s, i) => (
-                <MenuItem key={i} value={s}>
-                  {s}
-                </MenuItem>
-              ))}
+            <TextField select label="Status" name="status" fullWidth value={form.status} onChange={handleChange}>
+              {statuses.map((s) => (<MenuItem key={s} value={s}>{s}</MenuItem>))}
             </TextField>
           </Grid>
 
           <Grid item xs={6}>
-            <TextField
-              select
-              label="Shift"
-              name="shiftName"
-              fullWidth
-              value={form.shiftName}
-              onChange={handleChange}
-            >
-              {shifts.map((s, i) => (
-                <MenuItem key={i} value={s}>
-                  {s}
-                </MenuItem>
-              ))}
+            <TextField select label="Shift" name="shiftName" fullWidth value={form.shiftName} onChange={handleChange}>
+              {shifts.map((s) => (<MenuItem key={s} value={s}>{s}</MenuItem>))}
             </TextField>
           </Grid>
 
           <Grid item xs={6}>
-            <TextField
-              label="Check In Time"
-              name="checkInTime"
-              fullWidth
-              value={form.checkInTime}
-              onChange={handleChange}
-            />
+            <TextField label="Check In Time" name="checkInTime" fullWidth required value={form.checkInTime} onChange={handleChange} />
           </Grid>
 
           <Grid item xs={6}>
-            <TextField
-              label="Check Out Time"
-              name="checkOutTime"
-              fullWidth
-              value={form.checkOutTime}
-              onChange={handleChange}
-            />
+            <TextField label="Check Out Time" name="checkOutTime" fullWidth required value={form.checkOutTime} onChange={handleChange} />
           </Grid>
 
           <Grid item xs={6}>
-            <TextField
-              label="Overtime Hours"
-              name="overtimeHours"
-              type="number"
-              fullWidth
-              value={form.overtimeHours}
-              onChange={handleChange}
-            />
+            <TextField label="Overtime Hours" name="overtimeHours" type="number" fullWidth value={form.overtimeHours} onChange={handleChange} />
           </Grid>
         </Grid>
 
-        <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
-          <Button onClick={handleClose} variant="contained" color="error">
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} variant="contained" color="primary">
-            Submit
-          </Button>
+        <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
+          <Button onClick={handleClose} variant="contained" color="error">Cancel</Button>
+          <Button onClick={handleSubmit} variant="contained" color="primary">Submit</Button>
         </Box>
       </Box>
     </Modal>

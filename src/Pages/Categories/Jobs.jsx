@@ -6,11 +6,11 @@ import AddJob from "../../Components/Models/AddJobs";
 const Jobs = () => {
 
   const attributes = [
-    { id: "_id", label: "Job ID" },
+    { id: "jobId", label: "Job ID" },
     { id: "jobTitle", label: "Job Title" },
     { id: "jobDescription", label: "Description" },
-  { id: "departmentId.departmentName", label: "Department" },
-{ id: "designationId.designationName", label: "Designation" },
+    { id: "departmentId.departmentName", label: "Department" },
+    { id: "designationId.designationName", label: "Designation" },
     { id: "status", label: "Status" },
     { id: "postingDate", label: "Posting Date" },
     { id: "expiryDate", label: "Expiry Date" },

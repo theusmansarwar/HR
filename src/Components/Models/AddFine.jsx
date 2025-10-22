@@ -1,4 +1,3 @@
-// src/Components/Models/AddFine.jsx
 import * as React from "react";
 import {
   Box,
@@ -6,25 +5,26 @@ import {
   Typography,
   Modal,
   TextField,
-  Grid,
   MenuItem,
+  Grid,
 } from "@mui/material";
 import { createFines } from "../../DAL/create";
 import { updateFines } from "../../DAL/edit";
+import { fetchEmployees } from "../../DAL/fetch"; 
 
 const style = {
   position: "absolute",
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: "50%",
+  width: "60%",
   bgcolor: "background.paper",
   boxShadow: 24,
   p: 4,
   borderRadius: "12px",
 };
 
-const statusOptions = ["Paid", "Unpaid"];
+const statuses = ["Paid", "Unpaid"];
 
 export default function AddFine({
   open,
@@ -35,53 +35,70 @@ export default function AddFine({
   onResponse,
 }) {
   const [form, setForm] = React.useState({
-    fineId: "",
     employeeId: "",
     fineType: "",
     fineAmount: "",
     fineDate: "",
     description: "",
     status: "Unpaid",
-    archive: false,
   });
 
+  const [employees, setEmployees] = React.useState([]);
   const [id, setId] = React.useState("");
+
+  React.useEffect(() => {
+    const loadEmployees = async () => {
+      try {
+        const empRes = await fetchEmployees();
+        setEmployees(empRes?.data || []);
+      } catch (error) {
+        console.error("Error fetching employees:", error);
+      }
+    };
+    loadEmployees();
+  }, []);
+
 
   React.useEffect(() => {
     if (Modeldata) {
       setForm({
-        fineId: Modeldata?.fineId || "",
-        employeeId: Modeldata?.employeeId || "",
+        employeeId: Modeldata?.employeeId?._id || "",
         fineType: Modeldata?.fineType || "",
         fineAmount: Modeldata?.fineAmount || "",
-        fineDate: Modeldata?.fineDate || "",
+        fineDate: Modeldata?.fineDate
+          ? Modeldata.fineDate.split("T")[0]
+          : "",
         description: Modeldata?.description || "",
         status: Modeldata?.status || "Unpaid",
-        archive: Modeldata?.archive || false,
       });
       setId(Modeldata?._id || "");
+    } else {
+      setForm({
+        employeeId: "",
+        fineType: "",
+        fineAmount: "",
+        fineDate: "",
+        description: "",
+        status: "Unpaid",
+      });
+      setId("");
     }
   }, [Modeldata]);
 
   const handleClose = () => setOpen(false);
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      let response;
-      let payload = { ...form };
+      const payload = { ...form };
 
-      // ✅ Auto-generate fineId when adding
+      let response;
       if (Modeltype === "Add") {
-        payload.fineId = `FINE-${Date.now()}`;
         response = await createFines(payload);
       } else {
         response = await updateFines(id, payload);
@@ -89,7 +106,6 @@ export default function AddFine({
 
       if (response?.data) {
         onSave(response.data);
-
         onResponse({
           messageType: "success",
           message: response.message || "Fine saved successfully",
@@ -102,8 +118,8 @@ export default function AddFine({
       }
 
       setOpen(false);
-    } catch (err) {
-      console.error("Error saving fine:", err);
+    } catch (error) {
+      console.error("Error saving fine:", error);
       onResponse({
         messageType: "error",
         message: "Error saving fine",
@@ -114,28 +130,42 @@ export default function AddFine({
   return (
     <Modal open={open} onClose={handleClose}>
       <Box sx={style}>
-        <Typography variant="h6">{Modeltype} Fine</Typography>
-        <Grid container spacing={2} mt={1}>
-          {/* Fine ID */}
-          <Grid item xs={6}>
-            <TextField
-              label="Fine ID"
-              name="fineId"
-              fullWidth
-              value={form.fineId}
-              onChange={handleChange}
-              disabled={Modeltype === "Add"} // prevent editing auto ID
-            />
-          </Grid>
+        <Typography variant="h6" mb={2}>
+          {Modeltype} Fine
+        </Typography>
 
+        {Modeldata && (
+          <Grid container spacing={2} mb={2}>
+            <Grid item xs={6}>
+              <TextField
+                label="Fine ID"
+                value={Modeldata.fineId}
+                fullWidth
+                disabled
+              />
+            </Grid>
+          </Grid>
+        )}
+
+        <Grid container spacing={2}>
+          {/* Employee Dropdown */}
           <Grid item xs={6}>
             <TextField
-              label="Employee ID"
+              select
+              label="Select Employee"
               name="employeeId"
               fullWidth
+              required
               value={form.employeeId}
               onChange={handleChange}
-            />
+            >
+              <MenuItem value="">Select Employee</MenuItem>
+              {employees.map((emp) => (
+                <MenuItem key={emp._id} value={emp._id}>
+                  {emp.firstName} {emp.lastName}
+                </MenuItem>
+              ))}
+            </TextField>
           </Grid>
 
           <Grid item xs={6}>
@@ -143,6 +173,7 @@ export default function AddFine({
               label="Fine Type"
               name="fineType"
               fullWidth
+              required
               value={form.fineType}
               onChange={handleChange}
             />
@@ -154,6 +185,7 @@ export default function AddFine({
               name="fineAmount"
               type="number"
               fullWidth
+              required
               value={form.fineAmount}
               onChange={handleChange}
             />
@@ -166,6 +198,7 @@ export default function AddFine({
               name="fineDate"
               InputLabelProps={{ shrink: true }}
               fullWidth
+              required
               value={form.fineDate}
               onChange={handleChange}
             />
@@ -192,26 +225,16 @@ export default function AddFine({
               value={form.status}
               onChange={handleChange}
             >
-              {statusOptions.map((status, index) => (
-                <MenuItem key={index} value={status}>
+              {statuses.map((status) => (
+                <MenuItem key={status} value={status}>
                   {status}
                 </MenuItem>
               ))}
             </TextField>
           </Grid>
-
-          <Grid item xs={6} display="flex" alignItems="center" gap={1}>
-            <input
-              type="checkbox"
-              name="archive"
-              checked={form.archive}
-              onChange={handleChange}
-            />
-            <Typography>Archive Fine</Typography>
-          </Grid>
         </Grid>
 
-        <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
+        <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
           <Button onClick={handleClose} variant="contained" color="error">
             Cancel
           </Button>

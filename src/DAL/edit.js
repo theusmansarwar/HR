@@ -110,6 +110,7 @@ export const updateTraining = async (id, data) => {
   return invokeApi(reqObj);
 };
 
+
 export const updateFines = async (id, data) => {
   const reqObj = {
     path: `/fines/updateFine/${id}`,

@@ -6,6 +6,7 @@ import {
   Typography,
   Modal,
   TextField,
+  MenuItem,
   Grid,
 } from "@mui/material";
 import { createPerformance } from "../../DAL/create";
@@ -24,51 +25,57 @@ const style = {
   borderRadius: "12px",
 };
 
-export default function AddPerformance({
-  open,
-  setOpen,
-  Modeltype,
-  Modeldata,
-  onResponse,
-  onSave,
-}) {
+const statuses = ["Not Archived", "Archived"];
+
+export default function AddPerformance({ open, setOpen, Modeltype, Modeldata, onSave, onResponse }) {
   const [form, setForm] = React.useState({
     employeeId: "",
     KPIs: "",
     appraisalDate: "",
     score: "",
     remarks: "",
+    status: "Not Archived",
   });
-
-  const [id, setId] = React.useState("");
   const [employees, setEmployees] = React.useState([]);
+  const [id, setId] = React.useState("");
 
   // Fetch employees for dropdown
   React.useEffect(() => {
     const loadEmployees = async () => {
       try {
         const res = await fetchEmployees();
-        if (res?.data) setEmployees(res.data);
+        setEmployees(res?.data || []);
       } catch (err) {
-        console.error("Error fetching employees for performance form:", err);
+        console.error("Error fetching employees:", err);
       }
     };
     loadEmployees();
   }, []);
 
-  // Populate form when editing
+  // Populate form only on Update
   React.useEffect(() => {
-    if (Modeldata) {
+    if (Modeltype === "Update" && Modeldata) {
       setForm({
-        employeeId: Modeldata?.employeeId || "",
-        KPIs: Modeldata?.KPIs || "",
-        appraisalDate: Modeldata?.appraisalDate || "",
+        employeeId: Modeldata?.employeeId?._id || Modeldata?.employeeId || "",
+        KPIs: Array.isArray(Modeldata?.KPIs) ? Modeldata.KPIs.join(", ") : Modeldata?.KPIs || "",
+        appraisalDate: Modeldata?.appraisalDate ? Modeldata.appraisalDate.split("T")[0] : "",
         score: Modeldata?.score || "",
         remarks: Modeldata?.remarks || "",
+        status: Modeldata?.status || "Not Archived",
       });
       setId(Modeldata?._id || "");
+    } else if (Modeltype === "Add") {
+      setForm({
+        employeeId: "",
+        KPIs: "",
+        appraisalDate: "",
+        score: "",
+        remarks: "",
+        status: "Not Archived",
+      });
+      setId("");
     }
-  }, [Modeldata]);
+  }, [Modeltype, Modeldata]);
 
   const handleClose = () => setOpen(false);
 
@@ -79,33 +86,36 @@ export default function AddPerformance({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    try {
+      const payload = {
+        ...form,
+        KPIs: form.KPIs.split(",").map((kpi) => kpi.trim()),
+      };
 
-    const formData = new FormData();
-    Object.keys(form).forEach((key) => {
-      formData.append(key, form[key]);
-    });
+      let response;
+      if (Modeltype === "Add") {
+        response = await createPerformance(payload);
+      } else {
+        response = await updatePerformance(id, payload);
+      }
 
-    let response;
-    if (Modeltype === "Add") {
-      response = await createPerformance(formData, true);
-    } else {
-      response = await updatePerformance(id, formData, true);
+      if (response?.data) {
+        onSave(response.data);
+        onResponse({
+          messageType: "success",
+          message: response.message || `${Modeltype} successful`,
+        });
+        setOpen(false);
+      } else {
+        onResponse({
+          messageType: "error",
+          message: response.message || "Something went wrong",
+        });
+      }
+    } catch (error) {
+      console.error("Error saving performance:", error);
+      onResponse({ messageType: "error", message: "Error saving performance" });
     }
-
-    if (response?.status === 201 || response?.status === 200) {
-      onResponse({
-        messageType: "success",
-        message: response.message,
-      });
-      if (response.data) onSave(response.data);
-    } else {
-      onResponse({
-        messageType: "error",
-        message: response.message,
-      });
-    }
-
-    setOpen(false);
   };
 
   return (
@@ -115,6 +125,14 @@ export default function AddPerformance({
           {Modeltype} Performance
         </Typography>
 
+        {Modeltype === "Update" && Modeldata?.performanceId && (
+          <Grid container spacing={2} mb={2}>
+            <Grid item xs={6}>
+              <TextField label="Performance ID" value={Modeldata.performanceId} fullWidth disabled />
+            </Grid>
+          </Grid>
+        )}
+
         <Grid container spacing={2}>
           {/* Employee dropdown */}
           <Grid item xs={6}>
@@ -123,15 +141,15 @@ export default function AddPerformance({
               label="Employee"
               name="employeeId"
               fullWidth
+              required
               value={form.employeeId}
               onChange={handleChange}
-              SelectProps={{ native: true }}
             >
-              <option value="">Select Employee</option>
+              <MenuItem value="">Select Employee</MenuItem>
               {employees.map((emp) => (
-                <option key={emp._id} value={emp._id}>
+                <MenuItem key={emp._id} value={emp._id}>
                   {emp.firstName} {emp.lastName}
-                </option>
+                </MenuItem>
               ))}
             </TextField>
           </Grid>
@@ -139,9 +157,10 @@ export default function AddPerformance({
           {/* KPIs */}
           <Grid item xs={6}>
             <TextField
-              label="KPIs"
+              label="KPIs (comma separated)"
               name="KPIs"
               fullWidth
+              required
               value={form.KPIs}
               onChange={handleChange}
             />
@@ -155,6 +174,7 @@ export default function AddPerformance({
               name="appraisalDate"
               InputLabelProps={{ shrink: true }}
               fullWidth
+              required
               value={form.appraisalDate}
               onChange={handleChange}
             />
@@ -167,6 +187,7 @@ export default function AddPerformance({
               label="Score"
               name="score"
               fullWidth
+              required
               value={form.score}
               onChange={handleChange}
             />
@@ -183,6 +204,24 @@ export default function AddPerformance({
               value={form.remarks}
               onChange={handleChange}
             />
+          </Grid>
+
+          {/* Status */}
+          <Grid item xs={6}>
+            <TextField
+              select
+              label="Status"
+              name="status"
+              fullWidth
+              value={form.status}
+              onChange={handleChange}
+            >
+              {statuses.map((status) => (
+                <MenuItem key={status} value={status}>
+                  {status}
+                </MenuItem>
+              ))}
+            </TextField>
           </Grid>
         </Grid>
 

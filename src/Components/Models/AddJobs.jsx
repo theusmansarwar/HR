@@ -151,6 +151,19 @@ export default function AddJobs({
           {Modeltype} Job
         </Typography>
 
+        {Modeldata && (
+          <Grid container spacing={2} mb={2}>
+            <Grid item xs={6}>
+              <TextField
+                label="Job ID"
+                value={Modeldata.jobId}
+                fullWidth
+                disabled
+              />
+            </Grid>
+          </Grid>
+        )}
+
         <Grid container spacing={2}>
           <Grid item xs={6}>
             <TextField
