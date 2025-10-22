@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { useState } from "react";
+import { useTable } from "../../Components/Models/useTable";
+import AddRole from "../../Components/Models/AddRole";
 
 const allModules = [
   "Dashboard","Users","Roles", "Departments","Designations","Employees",
@@ -7,72 +8,36 @@ const allModules = [
   "Payroll","Fines","Jobs","Applications","Reports"
 ];
 
-function Roles({ currentUser }) {
-  const [roles, setRoles] = useState([]);
-  const [roleName, setRoleName] = useState("");
-  const [selectedModules, setSelectedModules] = useState([]);
+const Roles = ({ currentUser }) => {
+  const user = currentUser || JSON.parse(localStorage.getItem("user"));
+  const [open, setOpen] = useState(false);
+  const [modalType, setModalType] = useState("Add");
+  const [modalData, setModalData] = useState(null);
 
-  useEffect(() => {
-    fetchRoles();
-  }, []);
+  const attributes = [
+    { id: "name", label: "Role Name" },
+    { id: "description", label: "Description" },
+    { id: "modules", label: "Allowed Modules" },
+    { id: "status", label: "Status" },
+  ];
 
-  const fetchRoles = async () => {
-    const res = await axios.get("/roles/getRole");
-    setRoles(res.data);
-  };
+  const { tableUI, fetchData } = useTable({
+    attributes,
+    tableType: "Roles",
+    onAdd: () => { setModalType("Add"); setModalData(null); setOpen(true); },
+    onEdit: row => { setModalType("Update"); setModalData(row); setOpen(true); }
+  });
 
-  const handleCheckbox = (module) => {
-    if (selectedModules.includes(module)) {
-      setSelectedModules(selectedModules.filter(m => m !== module));
-    } else {
-      setSelectedModules([...selectedModules, module]);
-    }
-  };
+  const handleSave = () => fetchData(); // refresh table after add/update
 
-  const createRole = async () => {
-    await axios.post("/roles/createRole", { name: roleName, modules: selectedModules });
-    setRoleName("");
-    setSelectedModules([]);
-    fetchRoles();
-  };
-
-  if (currentUser.role !== "Admin") return <p>Access Denied</p>;
+  if (user?.role !== "HR") return <p>Access Denied</p>;
 
   return (
-    <div>
-      <h2>Roles</h2>
-
-      <div>
-        <input 
-          type="text" 
-          placeholder="Role Name" 
-          value={roleName} 
-          onChange={(e) => setRoleName(e.target.value)} 
-        />
-        <div>
-          {allModules.map((mod) => (
-            <label key={mod}>
-              <input 
-                type="checkbox" 
-                checked={selectedModules.includes(mod)}
-                onChange={() => handleCheckbox(mod)}
-              />
-              {mod}
-            </label>
-          ))}
-        </div>
-        <button onClick={createRole}>Add Role</button>
-      </div>
-
-      <ul>
-        {roles.map(role => (
-          <li key={role._id}>
-            {role.name} - Modules: {role.modules.join(", ")}
-          </li>
-        ))}
-      </ul>
-    </div>
+    <>
+      {tableUI}
+      <AddRole open={open} setOpen={setOpen} modalType={modalType} modalData={modalData} allModules={allModules} onSave={handleSave} />
+    </>
   );
-}
+};
 
 export default Roles;

@@ -102,3 +102,31 @@ export const deletePayroll = async (id) => {
   };
   return invokeApi(reqObj);
 };
+
+export const deleteRole = async (roleId) => {
+  const token = localStorage.getItem("token"); 
+
+  const reqObj = {
+    path: `/roles/deleteRole/${roleId}`, 
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    postData: {}, 
+  };
+
+  return invokeApi(reqObj);
+};
+
+export const deleteUser = async (userId) => {
+  const token = localStorage.getItem("token");
+  return invokeApi({
+    path: `/users/deleteUser/${userId}`,
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+};

@@ -33,6 +33,7 @@ import {
   fetchPayrolls,
   fetchFines,
   getRoles,
+  getUsers,
 } from "../../DAL/fetch";
 import { formatDate } from "../../Utils/Formatedate";
 import truncateText from "../../truncateText";
@@ -51,6 +52,8 @@ import {
   deleteTraining,
   deletePayroll,
   deleteFines,
+  deleteRole,
+  deleteUser,
 } from "../../DAL/delete";
 import { useAlert } from "../Alert/AlertContext";
 import DeleteModal from "./confirmDeleteModel";
@@ -172,7 +175,20 @@ export function useTable({
         setData(response.data);
         setTotalRecords(response.data.length);
       }
-    } else {
+    } else if (tableType === "Roles") {
+      response = await getRoles(page, rowsPerPage, searchQuery);  
+      if (response) {
+        setData(response);
+        setTotalRecords(response.length);
+      } 
+    } else if (tableType === "Users") {
+      response = await getUsers(page, rowsPerPage, searchQuery);
+      if (response) {
+        setData(response);
+        setTotalRecords(response.length);
+      } 
+    }
+    else {
       setData(pageData);
     }
   };
@@ -253,6 +269,12 @@ export function useTable({
         response = { status: 200, message: "Deleted successfully" };
       } else if (tableType === "Fines") {
         for (const id of selected) await deleteFines(id);
+        response = { status: 200, message: "Deleted successfully" };
+      } else if (tableType === "Roles") {
+        for (const id of selected) await deleteRole(id);
+        response = { status: 200, message: "Deleted successfully" };
+      } else if (tableType === "Users") {
+        for (const id of selected) await deleteUser(id);  
         response = { status: 200, message: "Deleted successfully" };
       }
 

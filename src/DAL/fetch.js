@@ -146,3 +146,27 @@ export const fetchRoleByName = async (roleName) => {
   };
   return invokeApi(reqObj);
 };
+
+export const getRoles = async () => {
+  const token = localStorage.getItem("token"); 
+  const reqObj = {
+    path: "/roles/getRole",
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  return invokeApi(reqObj);
+};
+
+export const getUsers = async () => {
+  const token = localStorage.getItem("token");
+  return invokeApi({
+    path: "/users/getUsers",
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+};

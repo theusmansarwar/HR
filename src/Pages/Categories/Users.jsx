@@ -1,104 +1,63 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { useState } from "react";
+import { useTable } from "../../Components/Models/useTable";
+import AddUser from "../../Components/Models/AddUser";
 
-function Users({ currentUser }) {
-  const [roles, setRoles] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    roles: [],
-    status: "active"
+const Users = ({ currentUser }) => {
+  const user = currentUser || JSON.parse(localStorage.getItem("user"));
+  const [open, setOpen] = useState(false);
+  const [modalType, setModalType] = useState("Add");
+  const [modalData, setModalData] = useState(null);
+
+  // Attributes for table columns
+  const attributes = [
+    { id: "name", label: "Name" },
+    { id: "email", label: "Email" },
+    { 
+      id: "role", 
+      label: "Role",
+      render: (row) => row.role || "N/A" // show role string from backend
+    },
+    { 
+      id: "status", 
+      label: "Status",
+      render: (row) => row.status || "N/A"
+    },
+  ];
+
+  // Initialize useTable
+  const { tableUI, fetchData } = useTable({
+    attributes,
+    tableType: "Users",
+    onAdd: () => {
+      setModalType("Add");
+      setModalData(null);
+      setOpen(true);
+    },
+    onEdit: (row) => {
+      setModalType("Update");
+      setModalData(row);
+      setOpen(true);
+    },
   });
 
-  useEffect(() => {
-    fetchRoles();
-    fetchUsers();
-  }, []);
+  // Refresh table after save
+  const handleSave = () => fetchData();
 
-  const fetchRoles = async () => {
-    const res = await axios.get("/api/roles");
-    setRoles(res.data);
-  };
-
-  const fetchUsers = async () => {
-    const res = await axios.get("/api/users");
-    setUsers(res.data);
-  };
-
-  const handleRoleCheckbox = (roleId) => {
-    const newRoles = formData.roles.includes(roleId)
-      ? formData.roles.filter(r => r !== roleId)
-      : [...formData.roles, roleId];
-
-    setFormData({ ...formData, roles: newRoles });
-  };
-
-  const createUser = async () => {
-    await axios.post("/api/users", formData);
-    setFormData({ name: "", email: "", password: "", roles: [], status: "active" });
-    fetchUsers();
-  };
-
-  if (currentUser.role !== "Admin") return <p>Access Denied</p>;
+  // Role-based access
+  if (!["HR"].includes(user?.role)) return <p>Access Denied</p>;
 
   return (
-    <div>
-      <h2>Users</h2>
-
-      <div>
-        <input
-          type="text"
-          placeholder="Name"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-        />
-
-        <h4>Assign Roles</h4>
-        {roles.map(role => (
-          <label key={role._id}>
-            <input 
-              type="checkbox" 
-              checked={formData.roles.includes(role._id)}
-              onChange={() => handleRoleCheckbox(role._id)}
-            />
-            {role.name}
-          </label>
-        ))}
-
-        <select
-          value={formData.status}
-          onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-        >
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
-
-        <button onClick={createUser}>Create User</button>
-      </div>
-
-      <ul>
-        {users.map(user => (
-          <li key={user._id}>
-            {user.name} - {user.email} - {user.status} - Roles: {user.roles.map(r => r.name).join(", ")}
-          </li>
-        ))}
-      </ul>
-    </div>
+    <>
+      {tableUI}
+      <AddUser
+        open={open}
+        setOpen={setOpen}
+        modalType={modalType}
+        modalData={modalData}
+        onSave={handleSave}
+      />
+    </>
   );
-}
+};
 
 export default Users;

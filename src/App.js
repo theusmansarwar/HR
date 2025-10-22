@@ -45,6 +45,8 @@ import { fetchRoleByName } from "./DAL/fetch";
 // Menu Icon Map
 const allMenuItems = {
   Dashboard: { route: "/dashboard", icon: <MdDashboard /> },
+  Users: { route: "/users", icon: <FaUsers /> },
+  Roles: { route: "/roles", icon: <HiUserGroup /> },  
   Departments: { route: "/departments", icon: <FaBuilding /> },
   Designations: { route: "/designations", icon: <HiUserGroup /> },
   Employees: { route: "/employees", icon: <FaUsers /> },

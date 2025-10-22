@@ -52,6 +52,7 @@ export default function AddAttendance({
   const [id, setId] = React.useState("");
   const [employees, setEmployees] = React.useState([]);
 
+  // ✅ Fetch Employees
   React.useEffect(() => {
     const loadEmployees = async () => {
       try {
@@ -64,20 +65,47 @@ export default function AddAttendance({
     loadEmployees();
   }, []);
 
+  // ✅ Update form when editing
   React.useEffect(() => {
     if (Modeldata) {
+      // Normalize employeeId (object vs string)
+      const selectedEmployeeId =
+        typeof Modeldata.employeeId === "object"
+          ? Modeldata.employeeId._id
+          : Modeldata.employeeId;
+
+      // Format date for <input type="date">
+      const formattedDate = Modeldata.date
+        ? Modeldata.date.split("T")[0]
+        : "";
+
       setForm({
-        attendanceId: Modeldata?.attendanceId || "",
-        employeeId: Modeldata?.employeeId || "",
-        archive: Modeldata?.archive || "No",
-        date: Modeldata?.date || "",
-        status: Modeldata?.status || "Present",
-        checkInTime: Modeldata?.checkInTime || "",
-        checkOutTime: Modeldata?.checkOutTime || "",
-        shiftName: Modeldata?.shiftName || "",
-        overtimeHours: Modeldata?.overtimeHours || 0,
+        attendanceId: Modeldata.attendanceId || "",
+        employeeId: selectedEmployeeId || "",
+        archive: Modeldata.archive || "No",
+        date: formattedDate,
+        status: Modeldata.status || "Present",
+        checkInTime: Modeldata.checkInTime || "",
+        checkOutTime: Modeldata.checkOutTime || "",
+        shiftName: Modeldata.shiftName || "",
+        overtimeHours: Modeldata.overtimeHours || 0,
       });
-      setId(Modeldata?._id || "");
+
+      setId(Modeldata._id || "");
+    } else {
+      // Reset form for Add
+      setForm({
+        attendanceId: "",
+        employeeId: "",
+        archive: "No",
+        date: "",
+        status: "Present",
+        checkInTime: "",
+        checkOutTime: "",
+        shiftName: "",
+        overtimeHours: 0,
+      });
+      setId("");
     }
   }, [Modeldata]);
 
@@ -87,7 +115,7 @@ export default function AddAttendance({
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: type === "checkbox" ? (checked ? "Yes" : "No") : value,
     }));
   };
 
@@ -164,12 +192,7 @@ export default function AddAttendance({
               type="checkbox"
               name="archive"
               checked={form.archive === "Yes"}
-              onChange={(e) =>
-                setForm((prev) => ({
-                  ...prev,
-                  archive: e.target.checked ? "Yes" : "No",
-                }))
-              }
+              onChange={handleChange}
             />
             <Typography>Archive Attendance</Typography>
           </Grid>

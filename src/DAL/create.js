@@ -112,6 +112,34 @@ export const createPayroll = async (data) => {
   return invokeApi(reqObj);
 };
 
+export const createRole = async (roleData) => {
+  const token = localStorage.getItem("token");
+  return invokeApi({
+    path: "/roles/createRole",
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    postData: roleData, 
+  });
+};
+
+export const createUser = async (userData) => {
+  const token = localStorage.getItem("token");
+  return invokeApi({
+    path: "/users/signup",
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    postData: userData,
+  });
+};
+
+
+
 
 
 

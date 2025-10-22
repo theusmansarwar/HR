@@ -127,3 +127,28 @@ export const updatePayroll = async (id, data) => {
   };
   return invokeApi(reqObj);
 };
+export const updateRole = async (id, roleData) => {
+  const token = localStorage.getItem("token");
+  return invokeApi({
+    path: `/roles/updateRole/${id}`,
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    postData: roleData,
+  });
+};
+
+export const updateUser = async (userId, userData) => {
+  const token = localStorage.getItem("token");
+  return invokeApi({
+    path: `/users/updateUser/${userId}`,
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    postData: userData,
+  });
+};

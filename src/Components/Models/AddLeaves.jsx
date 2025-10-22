@@ -1,4 +1,4 @@
- import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -41,28 +41,39 @@ const AddLeave = ({ open, setOpen, Modeltype, Modeldata, onSave, onResponse }) =
     loadEmployees();
   }, []);
 
-  // ✅ Handle Update vs Add
-  useEffect(() => {
-    if (Modeltype === "Update" && Modeldata) {
-      setLeave({
-        _id: Modeldata?._id || "",
-        employeeId: Modeldata?.employeeId?._id || Modeldata?.employeeId || "",
-        leaveType: Modeldata?.leaveType || "",
-        startDate: Modeldata?.startDate?.slice(0, 10) || "",
-        endDate: Modeldata?.endDate?.slice(0, 10) || "",
-        status: Modeldata?.status || "Pending",
-      });
-    } else {
-      setLeave({
-        _id: "",
-        employeeId: "",
-        leaveType: "",
-        startDate: "",
-        endDate: "",
-        status: "Pending",
-      });
+ // ✅ Fetch Employees
+useEffect(() => {
+  const loadEmployees = async () => {
+    try {
+      const res = await fetchEmployees();
+      const employeesData = res?.data || [];
+      setEmployees(employeesData);
+
+      // Only after employees are loaded, set leave for update
+      if (Modeltype === "Update" && Modeldata) {
+        const selectedEmployeeId = typeof Modeldata.employeeId === "object"
+          ? Modeldata.employeeId?._id
+          : Modeldata.employeeId;
+
+        // Make sure this employee exists in the fetched employees list
+        const exists = employeesData.find(emp => emp._id === selectedEmployeeId);
+
+        setLeave({
+          _id: Modeldata?._id || "",
+          employeeId: exists ? selectedEmployeeId : "", // only select if exists
+          leaveType: Modeldata?.leaveType || "",
+          startDate: Modeldata?.startDate?.slice(0, 10) || "",
+          endDate: Modeldata?.endDate?.slice(0, 10) || "",
+          status: Modeldata?.status || "Pending",
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching employees:", err);
     }
-  }, [Modeltype, Modeldata, open]);
+  };
+  loadEmployees();
+}, [Modeltype, Modeldata, open]);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
