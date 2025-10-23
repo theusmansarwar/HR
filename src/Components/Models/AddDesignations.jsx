@@ -10,18 +10,22 @@ import {
 } from "@mui/material";
 import { createDesignation } from "../../DAL/create";
 import { updateDesignation } from "../../DAL/edit";
-import { fetchDepartments } from "../../DAL/fetch"; // Add this import
+import { fetchDepartments } from "../../DAL/fetch";
+import { fetchDesignations } from "../../DAL/fetch"; // optional if you need last id logic
 
 const style = {
   position: "absolute",
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: "50%",
+  width: "55%",
+  maxHeight: "85vh",
+  overflowY: "auto",
   bgcolor: "background.paper",
   boxShadow: 24,
   p: 4,
   borderRadius: "12px",
+  "&::-webkit-scrollbar": { display: "none" }, // hides scrollbar
 };
 
 const statusOptions = ["Active", "Inactive"];
@@ -38,15 +42,16 @@ export default function AddDesignation({
     designationId: "",
     designationName: "",
     departmentId: "",
-    createdDate: "",
-    updatedDate: "",
+    createdDate: new Date().toISOString().split("T")[0],
+    updatedDate: new Date().toISOString().split("T")[0],
     archive: false,
     status: "Active",
   });
+
   const [id, setId] = React.useState("");
   const [departments, setDepartments] = React.useState([]);
 
-  // Fetch departments from API
+  // Fetch Departments
   React.useEffect(() => {
     const fetchData = async () => {
       try {
@@ -59,20 +64,54 @@ export default function AddDesignation({
     fetchData();
   }, []);
 
+  // Pre-fill when Editing
   React.useEffect(() => {
     if (Modeldata) {
       setForm({
         designationId: Modeldata?.designationId || "",
         designationName: Modeldata?.designationName || "",
         departmentId: Modeldata?.departmentId || "",
-        createdDate: Modeldata?.createdDate || "",
-        updatedDate: Modeldata?.updatedDate || "",
+        createdDate:
+          Modeldata?.createdDate?.split("T")[0] ||
+          new Date().toISOString().split("T")[0],
+        updatedDate:
+          Modeldata?.updatedDate?.split("T")[0] ||
+          new Date().toISOString().split("T")[0],
         archive: Modeldata?.archive || false,
         status: Modeldata?.status || "Active",
       });
       setId(Modeldata?._id || "");
     }
   }, [Modeldata]);
+
+  // Auto-generate ID for new designation
+  React.useEffect(() => {
+    const generateId = async () => {
+      if (Modeltype === "Add") {
+        try {
+          const depRes = await fetchDesignations();
+          if (depRes?.data?.length > 0) {
+            const lastDesignation = depRes.data.sort(
+              (a, b) => b.createdAt.localeCompare(a.createdAt)
+            )[0];
+            const lastNumber = parseInt(
+              lastDesignation.designationId?.split("-")[1] || "0"
+            );
+            const newId = `DES-${(lastNumber + 1)
+              .toString()
+              .padStart(4, "0")}`;
+            setForm((prev) => ({ ...prev, designationId: newId }));
+          } else {
+            setForm((prev) => ({ ...prev, designationId: "DES-0001" }));
+          }
+        } catch (error) {
+          console.error("Error generating designation ID:", error);
+          setForm((prev) => ({ ...prev, designationId: "DES-0001" }));
+        }
+      }
+    };
+    generateId();
+  }, [Modeltype]);
 
   const handleClose = () => setOpen(false);
 
@@ -88,7 +127,6 @@ export default function AddDesignation({
     e.preventDefault();
     try {
       let response;
-
       if (Modeltype === "Add") {
         response = await createDesignation(form);
       } else {
@@ -97,19 +135,17 @@ export default function AddDesignation({
 
       if (response?.data) {
         onSave(response.data);
-
         onResponse({
           messageType: "success",
-          message: response.message || "Saved successfully",
+          message: response.message || "Designation saved successfully",
         });
+        setOpen(false);
       } else {
         onResponse({
           messageType: "error",
           message: response.message || "Something went wrong",
         });
       }
-
-      setOpen(false);
     } catch (err) {
       console.error("Error saving designation:", err);
       onResponse({
@@ -122,8 +158,10 @@ export default function AddDesignation({
   return (
     <Modal open={open} onClose={handleClose}>
       <Box sx={style}>
-        <Typography variant="h6">{Modeltype} Designation</Typography>
-        <Grid container spacing={2} mt={1}>
+        <Typography variant="h6" mb={2}>
+          {Modeltype} Designation
+        </Typography>
+        <Grid container spacing={2}>
           <Grid item xs={6}>
             <TextField
               label="Designation ID"
@@ -131,8 +169,10 @@ export default function AddDesignation({
               fullWidth
               value={form.designationId}
               onChange={handleChange}
+              disabled
             />
           </Grid>
+
           <Grid item xs={6}>
             <TextField
               label="Designation Name"
@@ -140,6 +180,7 @@ export default function AddDesignation({
               fullWidth
               value={form.designationName}
               onChange={handleChange}
+              required
             />
           </Grid>
 
@@ -151,6 +192,7 @@ export default function AddDesignation({
               fullWidth
               value={form.departmentId}
               onChange={handleChange}
+              required
             >
               {departments.map((dep) => (
                 <MenuItem key={dep._id} value={dep._id}>
@@ -171,6 +213,7 @@ export default function AddDesignation({
               onChange={handleChange}
             />
           </Grid>
+
           <Grid item xs={6}>
             <TextField
               type="date"
@@ -211,7 +254,7 @@ export default function AddDesignation({
           </Grid>
         </Grid>
 
-        <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
+        <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
           <Button onClick={handleClose} variant="contained" color="error">
             Cancel
           </Button>

@@ -1,3 +1,4 @@
+// src/Pages/Departments.jsx
 import React, { useState } from "react";
 import { useTable } from "../../Components/Models/useTable";
 import AddDepartment from "../../Components/Models/addDepartments";
@@ -20,6 +21,7 @@ const Departments = () => {
     console.log("Saved department:", department);
   };
 
+
   const { tableUI, fetchData } = useTable({
     attributes,
     tableType: "Departments",
@@ -40,18 +42,21 @@ const Departments = () => {
       {tableUI}
 
       <AddDepartment
-  open={open}
-  setOpen={setOpen}
-  Modeltype={modelType}
-  Modeldata={modelData}
-  onResponse={(res) => {
-    console.log(res.message);
-    if (res.messageType === "success") {
-      fetchData(); // Refresh table after add/update success
-    }
-  }}
-/>
-
+        open={open}
+        setOpen={setOpen}
+        Modeltype={modelType}
+        Modeldata={modelData}
+        onSave={(data) => {
+          handleSave(data);
+          fetchData(); 
+        }}
+        onResponse={(res) => {
+          console.log(res.message);
+          if (res.messageType === "success") {
+            fetchData(); 
+          }
+        }}
+      />
     </>
   );
 };

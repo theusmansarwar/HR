@@ -1,4 +1,5 @@
-import { useState } from "react";
+// src/Pages/Employees.jsx
+import React, { useState } from "react";
 import { useTable } from "../../Components/Models/useTable";
 import AddEmployee from "../../Components/Models/addEmployee";
 
@@ -12,8 +13,8 @@ const Employees = () => {
     { id: "dateOfBirth", label: "Date of Birth" },
     { id: "gender", label: "Gender" },
     { id: "cnic", label: "CNIC" },
-    { id: "departmentId", label: "Department" },
-    { id: "designationId", label: "Designation" },
+    { id: "departmentId.departmentName", label: "Department" },
+    { id: "designationId.designationName", label: "Designation" },
     { id: "dateOfJoining", label: "Joining Date" },
     { id: "status", label: "Status" },
     { id: "salary", label: "Salary" },
@@ -57,7 +58,7 @@ const Employees = () => {
         Modeldata={modelData}
         onSave={(data) => {
           handleSave(data);
-          fetchData(); // refresh after save
+          fetchData(); // refresh table
         }}
         onResponse={(res) => console.log(res.message)}
       />

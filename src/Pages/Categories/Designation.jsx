@@ -1,15 +1,12 @@
-import React, { useState, useEffect } from "react";
+// src/Pages/Designations.jsx
+import React, { useState } from "react";
 import { useTable } from "../../Components/Models/useTable";
 import AddDesignation from "../../Components/Models/AddDesignations";
-
 import { fetchDesignations } from "../../DAL/fetch";
 import { createDesignation } from "../../DAL/create";
 import { updateDesignation } from "../../DAL/edit";
 
 const Designations = () => {
-  const [designations, setDesignations] = useState([]);
-  const [loading, setLoading] = useState(true);
-
   const attributes = [
     { id: "designationId", label: "Designation ID" },
     { id: "designationName", label: "Designation Name" },
@@ -23,38 +20,18 @@ const Designations = () => {
   const [modelType, setModelType] = useState("Add");
   const [modelData, setModelData] = useState(null);
 
-  const loadDesignations = async () => {
-    try {
-      setLoading(true);
-      const res = await fetchDesignations();
-      if (res?.data) {
-        setDesignations(res.data);
-      }
-    } catch (err) {
-      console.error("Error fetching designations:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadDesignations();
-  }, []);
-
+  // Handle Save or Update Designation
   const handleSave = async (designation) => {
     try {
-      let res;
       if (modelType === "Add") {
-        res = await createDesignation(designation);
+        const res = await createDesignation(designation);
         if (res?.data) {
-          setDesignations((prev) => [...prev, res.data]);
+          console.log("Designation created:", res.data);
         }
       } else {
-        res = await updateDesignation(designation.id, designation);
+        const res = await updateDesignation(designation._id, designation);
         if (res?.data) {
-          setDesignations((prev) =>
-            prev.map((d) => (d.id === designation.id ? res.data : d))
-          );
+          console.log("Designation updated:", res.data);
         }
       }
     } catch (err) {
@@ -62,10 +39,11 @@ const Designations = () => {
     }
   };
 
-  const { tableUI } = useTable({
+  // useTable Hook for displaying table + handling modal
+  const { tableUI, fetchData } = useTable({
     attributes,
     tableType: "Designations",
-    pageData: designations,
+    fetchFunction: fetchDesignations,
     onAdd: () => {
       setModelType("Add");
       setModelData(null);
@@ -80,14 +58,17 @@ const Designations = () => {
 
   return (
     <>
-      {loading ? <p>Loading designations...</p> : tableUI}
+      {tableUI}
 
       <AddDesignation
         open={open}
         setOpen={setOpen}
         Modeltype={modelType}
         Modeldata={modelData}
-        onSave={handleSave}
+        onSave={async (data) => {
+          await handleSave(data);
+          fetchData(); // refresh table after save or update
+        }}
         onResponse={(res) => console.log(res.message)}
       />
     </>

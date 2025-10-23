@@ -1,8 +1,8 @@
 import * as React from "react";
 import { Box, Button, Typography, Modal, TextField, MenuItem, Grid } from "@mui/material";
-import { createAttendance} from "../../DAL/create";
-import { fetchEmployees } from "../../DAL/fetch";
+import { createAttendance } from "../../DAL/create";
 import { updateAttendance } from "../../DAL/edit";
+import { fetchEmployees } from "../../DAL/fetch";
 import { useAlert } from "../Alert/AlertContext";
 
 const style = {
@@ -22,7 +22,8 @@ const shifts = ["Morning", "Evening", "Night"];
 
 export default function AddAttendance({ open, setOpen, Modeltype, Modeldata, onSave, onResponse }) {
   const { showAlert } = useAlert();
-  const [form, setForm] = React.useState({
+
+  const initialForm = {
     attendanceId: "",
     employeeId: "",
     date: "",
@@ -31,11 +32,13 @@ export default function AddAttendance({ open, setOpen, Modeltype, Modeldata, onS
     checkOutTime: "",
     shiftName: "",
     overtimeHours: 0,
-  });
+  };
+
+  const [form, setForm] = React.useState(initialForm);
   const [employees, setEmployees] = React.useState([]);
   const [id, setId] = React.useState("");
 
-  // Fetch employees dropdown
+  // Fetch employees once
   React.useEffect(() => {
     const loadEmployees = async () => {
       try {
@@ -69,21 +72,16 @@ export default function AddAttendance({ open, setOpen, Modeltype, Modeldata, onS
       });
       setId(Modeldata._id || "");
     } else {
-      setForm({
-        attendanceId: "",
-        employeeId: "",
-        date: "",
-        status: "Present",
-        checkInTime: "",
-        checkOutTime: "",
-        shiftName: "",
-        overtimeHours: 0,
-      });
+      setForm(initialForm);
       setId("");
     }
   }, [Modeldata]);
 
-  const handleClose = () => setOpen(false);
+  const handleClose = () => {
+    setOpen(false);
+    setForm(initialForm);
+    setId("");
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -104,11 +102,11 @@ export default function AddAttendance({ open, setOpen, Modeltype, Modeldata, onS
         showAlert("success", response.message || `${Modeltype} successful`);
         onSave?.(response.data);
         onResponse?.({ messageType: "success", message: response.message || `${Modeltype} successful` });
+        handleClose(); // ✅ close modal
       } else {
         showAlert("error", response.message || "Something went wrong");
         onResponse?.({ messageType: "error", message: response.message || "Something went wrong" });
       }
-      setOpen(false);
     } catch (error) {
       console.error("Attendance save error:", error);
       showAlert("error", "Something went wrong. Try again later.");
@@ -120,14 +118,6 @@ export default function AddAttendance({ open, setOpen, Modeltype, Modeldata, onS
     <Modal open={open} onClose={handleClose}>
       <Box sx={style}>
         <Typography variant="h6" mb={2}>{Modeltype} Attendance</Typography>
-
-        {Modeldata && (
-          <Grid container spacing={2} mb={2}>
-            <Grid item xs={6}>
-              <TextField label="Attendance ID" value={Modeldata.attendanceId} fullWidth disabled />
-            </Grid>
-          </Grid>
-        )}
 
         <Grid container spacing={2}>
           <Grid item xs={6}>
@@ -143,7 +133,7 @@ export default function AddAttendance({ open, setOpen, Modeltype, Modeldata, onS
               <MenuItem value="">Select Employee</MenuItem>
               {employees.map((emp) => (
                 <MenuItem key={emp._id} value={emp._id}>
-                  {emp.employeeId} - {emp.firstName} {emp.lastName}
+                  {emp.employeeId || "N/A"} - {emp.firstName} {emp.lastName}
                 </MenuItem>
               ))}
             </TextField>

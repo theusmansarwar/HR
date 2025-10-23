@@ -56,6 +56,10 @@ export const fetchDepartments = async () => {
   const reqObj = {
     path: "/departments/getDepartments",
     method: "GET",
+     headers: {
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+    },
   };
   return invokeApi(reqObj);
 };

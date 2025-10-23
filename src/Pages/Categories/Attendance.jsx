@@ -1,12 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useTable } from "../../Components/Models/useTable";
 import AddAttendance from "../../Components/Models/AddAttendance";
 
 const Attendance = () => {
-  // Table column definitions
   const attributes = [
     { id: "attendanceId", label: "Attendance ID" },
-    { id: "employeeId.employeeId", label: "Employee ID" },
     { id: "employeeId.firstName", label: "First Name" },
     { id: "employeeId.lastName", label: "Last Name" },
     { id: "date", label: "Date" },
@@ -17,28 +15,31 @@ const Attendance = () => {
     { id: "overtimeHours", label: "Overtime Hours" },
   ];
 
-  // State for modal and current row
   const [open, setOpen] = useState(false);
-  const [modelType, setModelType] = useState("Add");
-  const [modelData, setModelData] = useState(null);
+  const [modalType, setModalType] = useState("Add");
+  const [modalData, setModalData] = useState(null);
 
-  // Called when a row is added/updated
   const handleSave = (attendance) => {
     console.log("Saved attendance:", attendance);
   };
 
-  // Use the reusable table hook
   const { tableUI, fetchData } = useTable({
     attributes,
     tableType: "Attendance",
+    transformRow: (row) => ({
+      ...row,
+      employeeIdValue: row.employeeId?.employeeId || "N/A",
+      firstName: row.employeeId?.firstName || "N/A",
+      lastName: row.employeeId?.lastName || "N/A",
+    }),
     onAdd: () => {
-      setModelType("Add");
-      setModelData(null);
+      setModalType("Add");
+      setModalData(null);
       setOpen(true);
     },
     onEdit: (rowData) => {
-      setModelType("Update");
-      setModelData(rowData);
+      setModalType("Update");
+      setModalData(rowData);
       setOpen(true);
     },
   });
@@ -46,15 +47,14 @@ const Attendance = () => {
   return (
     <>
       {tableUI}
-
       <AddAttendance
         open={open}
         setOpen={setOpen}
-        Modeltype={modelType}
-        Modeldata={modelData}
+        Modeltype={modalType}
+        Modeldata={modalData}
         onSave={(data) => {
           handleSave(data);
-          fetchData(); // Refresh table after add/update
+          fetchData(); // refresh table
         }}
         onResponse={(res) => console.log(res.message)}
       />

@@ -5,8 +5,8 @@ import {
   Typography,
   Modal,
   TextField,
-  Grid,
   MenuItem,
+  Grid,
 } from "@mui/material";
 import { createnewDepartment } from "../../DAL/create";
 import { updateDepartment } from "../../DAL/edit";
@@ -16,14 +16,19 @@ const style = {
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: "50%",
+  width: "55%",
   bgcolor: "background.paper",
   boxShadow: 24,
   p: 4,
   borderRadius: "12px",
+  maxHeight: "80vh",
+  overflowY: "auto",
+  "&::-webkit-scrollbar": {
+    display: "none",
+  },
 };
 
-const statusOptions = ["Active", "Inactive"];
+const statuses = ["Active", "Inactive"];
 
 export default function AddDepartment({
   open,
@@ -38,23 +43,40 @@ export default function AddDepartment({
     headOfDepartment: "",
     createdDate: "",
     updatedDate: "",
-    archiveDepartment: false,
+    isArchived: false,
     status: "Active",
   });
+
   const [id, setId] = React.useState("");
 
+  // ✅ Prefill when editing
   React.useEffect(() => {
     if (Modeldata) {
       setForm({
         departmentId: Modeldata?.departmentId || "",
         departmentName: Modeldata?.departmentName || "",
         headOfDepartment: Modeldata?.headOfDepartment || "",
-        createdDate: Modeldata?.createdDate || "",
-        updatedDate: Modeldata?.updatedDate || "",
-        archiveDepartment: Modeldata?.archiveDepartment || false,
+        createdDate: Modeldata?.createdDate
+          ? Modeldata.createdDate.split("T")[0]
+          : "",
+        updatedDate: Modeldata?.updatedDate
+          ? Modeldata.updatedDate.split("T")[0]
+          : "",
+        isArchived: Modeldata?.isArchived || false,
         status: Modeldata?.status || "Active",
       });
       setId(Modeldata?._id || "");
+    } else {
+      setForm({
+        departmentId: "",
+        departmentName: "",
+        headOfDepartment: "",
+        createdDate: "",
+        updatedDate: "",
+        isArchived: false,
+        status: "Active",
+      });
+      setId("");
     }
   }, [Modeldata]);
 
@@ -70,61 +92,80 @@ export default function AddDepartment({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    try {
+      let response;
+      if (Modeltype === "Add") {
+        response = await createnewDepartment(form);
+      } else {
+        response = await updateDepartment(id, form);
+      }
 
-    let response;
-    if (Modeltype === "Add") {
-      response = await createnewDepartment(form);
-    } else {
-      response = await updateDepartment(id, form);
-    }
+      if (response.status === 201 || response.status === 200) {
+        onResponse({
+          messageType: "success",
+          message: response.message || "Department saved successfully",
+        });
+      } else {
+        onResponse({
+          messageType: "error",
+          message: response.message || "Something went wrong",
+        });
+      }
 
-    if (response.status === 201 || response.status === 200) {
-      onResponse({
-        messageType: "success",
-        message: response.message,
-      });
-    } else {
+      setOpen(false);
+    } catch (error) {
+      console.error("Error saving department:", error);
       onResponse({
         messageType: "error",
-        message: response.message,
+        message: "Error saving department",
       });
     }
-
-    setOpen(false);
   };
 
   return (
     <Modal open={open} onClose={handleClose}>
       <Box sx={style}>
-        <Typography variant="h6">{Modeltype} Department</Typography>
-        <Grid container spacing={2} mt={1}>
-          <Grid item xs={6}>
-            <TextField
-              label="Department ID"
-              name="departmentId"
-              fullWidth
-              value={form.departmentId}
-              onChange={handleChange}
-            />
+        <Typography variant="h6" mb={2}>
+          {Modeltype} Department
+        </Typography>
+
+        {Modeldata && (
+          <Grid container spacing={2} mb={2}>
+            <Grid item xs={6}>
+              <TextField
+                label="Department ID"
+                name="departmentId"
+                value={form.departmentId}
+                fullWidth
+                disabled
+              />
+            </Grid>
           </Grid>
+        )}
+
+        <Grid container spacing={2}>
           <Grid item xs={6}>
             <TextField
               label="Department Name"
               name="departmentName"
               fullWidth
+              required
               value={form.departmentName}
               onChange={handleChange}
             />
           </Grid>
+
           <Grid item xs={6}>
             <TextField
               label="Head of Department"
               name="headOfDepartment"
               fullWidth
+              required
               value={form.headOfDepartment}
               onChange={handleChange}
             />
           </Grid>
+
           <Grid item xs={6}>
             <TextField
               type="date"
@@ -136,6 +177,7 @@ export default function AddDepartment({
               onChange={handleChange}
             />
           </Grid>
+
           <Grid item xs={6}>
             <TextField
               type="date"
@@ -148,11 +190,18 @@ export default function AddDepartment({
             />
           </Grid>
 
-          <Grid item xs={6} display="flex" alignItems="center" gap={1}>
+          <Grid
+            item
+            xs={6}
+            display="flex"
+            alignItems="center"
+            gap={1}
+            mt={1}
+          >
             <input
               type="checkbox"
-              name="archiveDepartment"
-              checked={form.archiveDepartment}
+              name="isArchived"
+              checked={form.isArchived}
               onChange={handleChange}
             />
             <Typography>Archive Department</Typography>
@@ -167,8 +216,8 @@ export default function AddDepartment({
               value={form.status}
               onChange={handleChange}
             >
-              {statusOptions.map((status, index) => (
-                <MenuItem key={index} value={status}>
+              {statuses.map((status) => (
+                <MenuItem key={status} value={status}>
                   {status}
                 </MenuItem>
               ))}
@@ -176,7 +225,17 @@ export default function AddDepartment({
           </Grid>
         </Grid>
 
-        <Box display="flex" justifyContent="flex-end" gap={2} mt={2}>
+        {/* ✅ Bottom fixed buttons */}
+        <Box
+          display="flex"
+          justifyContent="flex-end"
+          gap={2}
+          mt={3}
+          position="sticky"
+          bottom={0}
+          bgcolor="background.paper"
+          pt={2}
+        >
           <Button onClick={handleClose} variant="contained" color="error">
             Cancel
           </Button>
