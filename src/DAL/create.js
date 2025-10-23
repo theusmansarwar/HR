@@ -138,6 +138,15 @@ export const createUser = async (userData) => {
   });
 };
 
+export const createReport = async (reportData) => {
+  const reqObj = {
+    path: "/reports/createReport",
+    method: "POST",
+    postData: reportData,
+  };
+  return invokeApi(reqObj);
+}
+
 
 
 

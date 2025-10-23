@@ -41,7 +41,7 @@ import Users from "./Pages/Categories/Users";
 import Roles from "./Pages/Categories/Roles";
 import { fetchRoleByName } from "./DAL/fetch";
 
-
+//MENU ITEMS
 // Menu Icon Map
 const allMenuItems = {
   Dashboard: { route: "/dashboard", icon: <MdDashboard /> },

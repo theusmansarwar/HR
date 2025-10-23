@@ -153,3 +153,12 @@ export const updateUser = async (userId, userData) => {
     postData: userData,
   });
 };
+
+export const updateReport = async (id, updatedData) => {
+  const reqObj = {
+    path: `/reports/updateReport/${id}`,
+    method: "PUT",
+    postData: updatedData,
+  };
+  return invokeApi(reqObj);
+};

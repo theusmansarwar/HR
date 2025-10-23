@@ -1,26 +1,26 @@
-// src/Pages/Reports.jsx
-import React, { useState } from "react";
-import {
-  Box,
-  Button,
-  MenuItem,
-  TextField,
-  Typography,
-} from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Box, Button, MenuItem, TextField, Typography } from "@mui/material";
 import { CSVLink } from "react-csv";
+import axios from "axios";
 
 const reportTypes = ["Employees", "Payroll", "Performance", "Fines", "Applications"];
 
-const Reports = ({
-  employees = [],
-  payrolls = [],
-  performance = [],
-  fines = [],
-  applications = [],
-}) => {
+const Reports = ({ employees = [], payrolls = [], performance = [], fines = [], applications = [] }) => {
   const [reportType, setReportType] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [data, setData] = useState([]);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [savedReports, setSavedReports] = useState([]);
+
+  useEffect(() => {
+    fetchReports();
+  }, []);
+
+  const fetchReports = async () => {
+    const res = await axios.get("/api/reports");
+    setSavedReports(res.data);
+  };
 
   const handleGenerate = () => {
     let selectedData = [];
@@ -45,12 +45,29 @@ const Reports = ({
     }
 
     if (statusFilter) {
-      selectedData = selectedData.filter(
-        (item) => item.status === statusFilter
-      );
+      selectedData = selectedData.filter((item) => item.status === statusFilter);
     }
 
     setData(selectedData);
+  };
+
+  const handleSubmit = async () => {
+    if (!title || !reportType) return alert("Please fill all required fields");
+
+    const payload = {
+      reportType,
+      filter: statusFilter,
+      title,
+      description,
+      generatedBy: "HR Admin",
+      data,
+    };
+
+    await axios.post("/api/reports", payload);
+    alert("Report saved successfully!");
+    setTitle("");
+    setDescription("");
+    fetchReports();
   };
 
   return (
@@ -88,44 +105,34 @@ const Reports = ({
           <MenuItem value="Unpaid">Unpaid</MenuItem>
         </TextField>
 
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleGenerate}
-          disabled={!reportType}
-        >
+        <Button variant="contained" color="primary" onClick={handleGenerate} disabled={!reportType}>
           Generate
         </Button>
-
-        {data.length > 0 && (
-          <CSVLink
-            data={data}
-            filename={`${reportType}_report.csv`}
-            style={{ textDecoration: "none" }}
-          >
-            <Button variant="contained" color="success">
-              Download CSV
-            </Button>
-          </CSVLink>
-        )}
       </Box>
 
       {data.length > 0 && (
-        <Box mt={2}>
+        <>
+          <Typography variant="h6">Add Report Details</Typography>
+          <Box display="flex" gap={2} mt={2} mb={2}>
+            <TextField label="Report Title" value={title} onChange={(e) => setTitle(e.target.value)} fullWidth />
+            <TextField
+              label="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              fullWidth
+            />
+            <Button variant="contained" color="success" onClick={handleSubmit}>
+              Submit
+            </Button>
+          </Box>
+
           <Typography variant="h6">Report Preview:</Typography>
           <Box sx={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr>
                   {Object.keys(data[0]).map((key) => (
-                    <th
-                      key={key}
-                      style={{
-                        border: "1px solid #ccc",
-                        padding: "8px",
-                        background: "#f5f5f5",
-                      }}
-                    >
+                    <th key={key} style={{ border: "1px solid #ccc", padding: "8px", background: "#f5f5f5" }}>
                       {key}
                     </th>
                   ))}
@@ -135,10 +142,7 @@ const Reports = ({
                 {data.map((item, idx) => (
                   <tr key={idx}>
                     {Object.values(item).map((val, i) => (
-                      <td
-                        key={i}
-                        style={{ border: "1px solid #ccc", padding: "8px" }}
-                      >
+                      <td key={i} style={{ border: "1px solid #ccc", padding: "8px" }}>
                         {val?.toString() ?? ""}
                       </td>
                     ))}
@@ -147,8 +151,21 @@ const Reports = ({
               </tbody>
             </table>
           </Box>
-        </Box>
+        </>
       )}
+
+      {/* Saved Reports List */}
+      <Box mt={5}>
+        <Typography variant="h6">Saved Reports</Typography>
+        {savedReports.map((r, idx) => (
+          <Box key={idx} p={2} border="1px solid #ddd" borderRadius="8px" mb={2}>
+            <Typography><b>Title:</b> {r.title}</Typography>
+            <Typography><b>Type:</b> {r.reportType}</Typography>
+            <Typography><b>Generated By:</b> {r.generatedBy}</Typography>
+            <Typography><b>Date:</b> {new Date(r.createdAt).toLocaleString()}</Typography>
+          </Box>
+        ))}
+      </Box>
     </Box>
   );
 };

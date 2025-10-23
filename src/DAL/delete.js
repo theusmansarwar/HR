@@ -130,3 +130,11 @@ export const deleteUser = async (userId) => {
     },
   });
 };
+
+export const deleteReport = async (id) => {
+  const reqObj = {
+    path: `/reports/deleteReport/${id}`,
+    method: "DELETE",
+  };
+  return invokeApi(reqObj);
+};
