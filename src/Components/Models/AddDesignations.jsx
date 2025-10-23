@@ -42,8 +42,6 @@ export default function AddDesignation({
     designationId: "",
     designationName: "",
     departmentId: "",
-    createdDate: new Date().toISOString().split("T")[0],
-    updatedDate: new Date().toISOString().split("T")[0],
     archive: false,
     status: "Active",
   });
@@ -71,12 +69,6 @@ export default function AddDesignation({
         designationId: Modeldata?.designationId || "",
         designationName: Modeldata?.designationName || "",
         departmentId: Modeldata?.departmentId || "",
-        createdDate:
-          Modeldata?.createdDate?.split("T")[0] ||
-          new Date().toISOString().split("T")[0],
-        updatedDate:
-          Modeldata?.updatedDate?.split("T")[0] ||
-          new Date().toISOString().split("T")[0],
         archive: Modeldata?.archive || false,
         status: Modeldata?.status || "Active",
       });
@@ -202,7 +194,7 @@ export default function AddDesignation({
             </TextField>
           </Grid>
 
-          <Grid item xs={6}>
+          {/* <Grid item xs={6}>
             <TextField
               type="date"
               label="Created Date"
@@ -224,7 +216,7 @@ export default function AddDesignation({
               value={form.updatedDate}
               onChange={handleChange}
             />
-          </Grid>
+          </Grid> */}
 
           <Grid item xs={6} display="flex" alignItems="center" gap={1}>
             <input

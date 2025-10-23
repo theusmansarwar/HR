@@ -1,4 +1,23 @@
 :root {
+
+  --success-color: #0f5132;
+  --success-bgcolor: #d1e7dd;
+
+  --error-color: #842029;
+  --error-bgcolor: #f8d7da;
+
+  --warning-color: #664d03;
+  --warning-bgcolor: #fff3cd;
+
+  --info-color: #055160;
+  --info-bgcolor: #cff4fc;
+
+  --neutral-color: #2f2f2f;
+  --neutral-bgcolor: #e2e3e5;
+
+  --border-radius-secondary: 8px;
+
+
   --background-color2: black;
   --background-color: #334eac;
   --headings-color: var(--background-color);

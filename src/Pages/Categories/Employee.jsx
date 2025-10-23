@@ -15,7 +15,7 @@ const Employees = () => {
     { id: "cnic", label: "CNIC" },
     { id: "departmentId.departmentName", label: "Department" },
     { id: "designationId.designationName", label: "Designation" },
-    { id: "dateOfJoining", label: "Joining Date" },
+    { id: "createdAt", label: "Joining Date" },
     { id: "status", label: "Status" },
     { id: "salary", label: "Salary" },
     { id: "bankAccountNo", label: "Bank Account No" },

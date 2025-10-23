@@ -26,7 +26,7 @@ export default function AddAttendance({ open, setOpen, Modeltype, Modeldata, onS
   const initialForm = {
     attendanceId: "",
     employeeId: "",
-    date: "",
+    // date: "",
     status: "Present",
     checkInTime: "",
     checkOutTime: "",
@@ -58,12 +58,12 @@ export default function AddAttendance({ open, setOpen, Modeltype, Modeldata, onS
         ? Modeldata.employeeId._id
         : Modeldata.employeeId;
 
-      const formattedDate = Modeldata.date ? Modeldata.date.split("T")[0] : "";
+      // const formattedDate = Modeldata.date ? Modeldata.date.split("T")[0] : "";
 
       setForm({
         attendanceId: Modeldata.attendanceId || "",
         employeeId: selectedEmployeeId || "",
-        date: formattedDate,
+        // date: formattedDate,
         status: Modeldata.status || "Present",
         checkInTime: Modeldata.checkInTime || "",
         checkOutTime: Modeldata.checkOutTime || "",
@@ -139,7 +139,7 @@ export default function AddAttendance({ open, setOpen, Modeltype, Modeldata, onS
             </TextField>
           </Grid>
 
-          <Grid item xs={6}>
+          {/* <Grid item xs={6}>
             <TextField
               type="date"
               label="Date"
@@ -150,7 +150,7 @@ export default function AddAttendance({ open, setOpen, Modeltype, Modeldata, onS
               value={form.date}
               onChange={handleChange}
             />
-          </Grid>
+          </Grid> */}
 
           <Grid item xs={6}>
             <TextField select label="Status" name="status" fullWidth value={form.status} onChange={handleChange}>

@@ -41,8 +41,6 @@ export default function AddDepartment({
     departmentId: "",
     departmentName: "",
     headOfDepartment: "",
-    createdDate: "",
-    updatedDate: "",
     isArchived: false,
     status: "Active",
   });
@@ -55,12 +53,7 @@ export default function AddDepartment({
         departmentId: Modeldata?.departmentId || "",
         departmentName: Modeldata?.departmentName || "",
         headOfDepartment: Modeldata?.headOfDepartment || "",
-        createdDate: Modeldata?.createdDate
-          ? Modeldata.createdDate.split("T")[0]
-          : "",
-        updatedDate: Modeldata?.updatedDate
-          ? Modeldata.updatedDate.split("T")[0]
-          : "",
+         
         isArchived: Modeldata?.isArchived || false,
         status: Modeldata?.status || "Active",
       });
@@ -70,8 +63,6 @@ export default function AddDepartment({
         departmentId: "",
         departmentName: "",
         headOfDepartment: "",
-        createdDate: "",
-        updatedDate: "",
         isArchived: false,
         status: "Active",
       });
@@ -165,7 +156,7 @@ export default function AddDepartment({
             />
           </Grid>
 
-          <Grid item xs={6}>
+          {/* <Grid item xs={6}>
             <TextField
               type="date"
               label="Created Date"
@@ -187,7 +178,7 @@ export default function AddDepartment({
               value={form.updatedDate}
               onChange={handleChange}
             />
-          </Grid>
+          </Grid> */}
 
           <Grid
             item

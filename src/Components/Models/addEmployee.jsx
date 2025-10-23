@@ -52,7 +52,6 @@ export default function AddEmployee({
     cnic: "",
     departmentId: "",
     designationId: "",
-    dateOfJoining: "",
     employeementType: "",
     status: "Active",
     salary: "",
@@ -95,7 +94,7 @@ export default function AddEmployee({
         cnic: Modeldata?.cnic || "",
         departmentId: Modeldata?.departmentId?._id || Modeldata?.departmentId || "",
         designationId: Modeldata?.designationId?._id || Modeldata?.designationId || "",
-        dateOfJoining: Modeldata?.dateOfJoining ? Modeldata.dateOfJoining.split("T")[0] : "",
+ 
         employeementType: Modeldata?.employeementType || "",
         status: Modeldata?.status || "Active",
         salary: Modeldata?.salary || "",
@@ -262,9 +261,9 @@ export default function AddEmployee({
                 ))}
               </TextField>
             </Grid>
-            <Grid item xs={6}>
+            {/* <Grid item xs={6}>
               <TextField type="date" label="Joining Date" name="dateOfJoining" InputLabelProps={{ shrink: true }} fullWidth required value={form.dateOfJoining} onChange={handleChange} />
-            </Grid>
+            </Grid> */}
             <Grid item xs={6}>
               <TextField select label="Employment Type" name="employeementType" fullWidth required value={form.employeementType} onChange={handleChange}>
                 {employmentTypes.map((type) => (

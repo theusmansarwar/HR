@@ -8,8 +8,8 @@ const Departments = () => {
     { id: "departmentId", label: "Department ID" },
     { id: "departmentName", label: "Department Name" },
     { id: "headOfDepartment", label: "Head of Department" },
-    { id: "createdDate", label: "Created Date" },
-    { id: "updatedDate", label: "Updated Date" },
+    { id: "createdAt", label: "Created Date" },
+    { id: "updatedAt", label: "Updated Date" },
     { id: "status", label: "Status" },
   ];
 

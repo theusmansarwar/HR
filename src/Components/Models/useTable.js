@@ -84,6 +84,47 @@ export function useTable({
   const [modelData, setModelData] = useState({});
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
+
+//   const getStatusStyles = (status) => {
+//   switch (status) {
+//     case "Active":
+//       return {
+//         color: "var(--success-color)",
+//         background: "var(--success-bgcolor)",
+//       };
+//     case "Inactive":
+//       return {
+//         color: "var(--error-color)",
+//         background: "var(--error-bgcolor)",
+//       };
+//     case "Pending":
+//       return {
+//         color: "var(--warning-color)",
+//         background: "var(--warning-bgcolor)",
+//       };
+//     case "Approved":
+//       return {
+//         color: "var(--info-color)",
+//         background: "var(--info-bgcolor)",
+//       };
+//     case "Completed":
+//       return {
+//         color: "var(--success-color)",
+//         background: "var(--success-bgcolor)",
+//       };
+//     case "Rejected":
+//       return {
+//         color: "var(--error-color)",
+//         background: "var(--error-bgcolor)",
+//       };
+//     default:
+//       return {
+//         color: "var(--neutral-color)",
+//         background: "var(--neutral-bgcolor)",
+//       };
+//   }
+// };
+
   const fetchData = async () => {
     let response;
 
@@ -500,16 +541,16 @@ else if (tableType === "Users") {
                             key={attr.id}
                             sx={{ color: "var(--black-color)" }}
                           >
-                            {attr.id === "createdAt" ||
-                            attr.id === "publishedDate" ? (
+                            {attr.id === "createdAt"||attr.id === "updatedAt"||attr.id === "appraisalDate"  ||attr.id === "dateOfBirth"    || attr.id === "startDate" || attr.id === "endDate" ||
+                          attr.id === "postingDate"||attr.id === "expiryDate"|| attr.id === "fineDate"||  attr.id === "paymentDate"|| attr.id === "publishedDate" ? (
                               formatDate(row[attr.id])
-                            ) : attr.id === "published" ? (
+                            ) : attr.id === "status" ? (
                               <span
                                 style={{
-                                  color: row[attr.id]
+                                  color: row[attr.id]==="Active"
                                     ? "var(--success-color)"
                                     : "var(--warning-color)",
-                                  background: row[attr.id]
+                                  background: row[attr.id] ==="Active"
                                     ? "var(--success-bgcolor)"
                                     : "var(--warning-bgcolor)",
                                   padding: "5px",
@@ -518,7 +559,7 @@ else if (tableType === "Users") {
                                     "var(--border-radius-secondary)",
                                 }}
                               >
-                                {row[attr.id] ? "Public" : "Private"}
+                                {row[attr.id]==="Active" ? "Active" : "InActive"}
                               </span>
                             ) : row[attr.id] === 0 ? (
                               0

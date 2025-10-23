@@ -7,7 +7,7 @@ const Attendance = () => {
     { id: "attendanceId", label: "Attendance ID" },
     { id: "employeeId.firstName", label: "First Name" },
     { id: "employeeId.lastName", label: "Last Name" },
-    { id: "date", label: "Date" },
+    { id: "createdAt", label: "Date" },
     { id: "status", label: "Status" },
     { id: "checkInTime", label: "Check In Time" },
     { id: "checkOutTime", label: "Check Out Time" },
