@@ -1,4 +1,5 @@
 :root {
+  --background-color2: black;
   --background-color: #334eac;
   --headings-color: var(--background-color);
   --shadow-low1: hsla(217, 48%, 60%, 0.299);
