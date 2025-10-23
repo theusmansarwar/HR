@@ -64,46 +64,56 @@ export const fetchDepartments = async () => {
   return invokeApi(reqObj);
 };
 
-export const fetchDesignations = async () => {
+export const fetchDesignations = async (page = 1, rowsPerPage = 10, searchQuery = "") => {
   const reqObj = {
-    path: "/designations/getDesignations",
-    method: "GET",
-  };
-  return invokeApi(reqObj);
-};
-
-export const fetchEmployees = async () => {
-  const reqObj = {
-    path: "/employees/getEmployees",
-    method: "GET",
-  };
-  return invokeApi(reqObj);
-}
-export const fetchAttendance = async () => {
-  const reqObj = {
-    path: "/attendance/getAttendances",
-    method: "GET",
-  };
-  return invokeApi(reqObj);
-};
-
-// export const fetchLeaves = async () => {
-//   const reqObj = {
-//     path: "/leaves/getLeaves",
-//     method: "GET",
-//   };
-//   return invokeApi(reqObj);
-// };
-export const fetchLeaves = async () => {
-  const reqObj = {
-    path: "/leaves/getLeaves",
+    path: `/designations/getDesignations?page=${page}&limit=${rowsPerPage}&search=${encodeURIComponent(searchQuery)}`,
     method: "GET",
     headers: {
-      "Cache-Control": "no-cache",
+      Authorization: `Bearer ${localStorage.getItem("Token")}`,
     },
+    postData: {},
   };
   return invokeApi(reqObj);
 };
+
+
+ export const fetchEmployees = async (page = 1, rowsPerPage = 10, searchQuery = "") => {
+  const reqObj = {
+    path: `/employees/getEmployees?page=${page}&limit=${rowsPerPage}&search=${encodeURIComponent(searchQuery)}`,
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("Token")}`,
+    },
+    postData: {},
+  };
+  return invokeApi(reqObj);
+};
+export const fetchAttendance = async (page = 1, limit = 10, searchQuery = "") => {
+  const reqObj = {
+    path: `/attendance/getAttendances?page=${page}&limit=${limit}&search=${encodeURIComponent(searchQuery)}`,
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("Token")}`,
+    },
+    postData: {},
+  };
+  return invokeApi(reqObj);
+};
+
+
+ 
+ export const fetchLeaves = async (page = 1, limit = 10, searchQuery = "") => {
+  const reqObj = {
+    path: `/leaves/getLeaves?page=${page}&limit=${limit}&search=${encodeURIComponent(searchQuery)}`,
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("Token")}`,
+    },
+    postData: {},
+  };
+  return invokeApi(reqObj);
+};
+
 
 export const fetchJobs = async () => {
   const reqObj = {
@@ -113,45 +123,69 @@ export const fetchJobs = async () => {
   return invokeApi(reqObj);
 };
 
-export const fetchApplications = async () => {
+ export const fetchApplications = async (page = 1, limit = 10, searchQuery = "") => {
   const reqObj = {
-    path: "/applications/getApplications",
+    path: `/applications/getApplications?page=${page}&limit=${limit}&search=${encodeURIComponent(searchQuery)}`,
     method: "GET",
-  };
-  return invokeApi(reqObj);
-  };
-
-export const fetchPerformance = async () => {
-  const reqObj = {
-    path: "/performance/getPerformance",
-    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("Token")}`,
+    },
+    postData: {},
   };
   return invokeApi(reqObj);
 };
 
-export const fetchTrainings = async () => {
+export const fetchPerformance = async (page = 1, limit = 10, searchQuery = "") => {
   const reqObj = {
-    path: "/training/getTrainings",
+    path: `/performance/getPerformance?page=${page}&limit=${limit}&search=${encodeURIComponent(searchQuery)}`,
     method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("Token")}`,
+    },
+    postData: {},
   };
   return invokeApi(reqObj);
 };
 
-export const fetchFines = async () => {
-  const reqObj = {  
-    path: "/fines/getFines",
+
+export const fetchTrainings = async (page = 1, limit = 10, searchQuery = "") => {
+  const reqObj = {
+    path: `/training/getTrainings?page=${page}&limit=${limit}&search=${encodeURIComponent(searchQuery)}`,
     method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("Token")}`,
+    },
+    postData: {},
   };
   return invokeApi(reqObj);
 };
 
-export const fetchPayrolls = async () => {
+
+export const fetchFines = async (page = 1, limit = 10, searchQuery = "") => {
   const reqObj = {
-    path: "/payroll/getPayrolls",
+    path: `/fines/getFines?page=${page}&limit=${limit}&search=${encodeURIComponent(searchQuery)}`,
     method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("Token")}`,
+    },
+    postData: {},
   };
   return invokeApi(reqObj);
 };
+
+
+export const fetchPayrolls = async (page = 1, limit = 10, searchQuery = "") => {
+  const reqObj = {
+    path: `/payroll/getPayrolls?page=${page}&limit=${limit}&search=${encodeURIComponent(searchQuery)}`,
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("Token")}`,
+    },
+    postData: {},
+  };
+  return invokeApi(reqObj);
+};
+
 
 export const fetchRoleByName = async (roleName) => {
   const reqObj = {
@@ -161,26 +195,82 @@ export const fetchRoleByName = async (roleName) => {
   return invokeApi(reqObj);
 };
 
-export const getRoles = async () => {
-  const token = localStorage.getItem("token"); 
+ 
+// export const getRoles = async (page = 1, limit = 10, searchQuery = "") => {
+//   const token = localStorage.getItem("token");
+//   if (!token) throw new Error("No token found, please login");
+  
+//   const reqObj = {
+//     path: `/roles/getRole?page=${page}&limit=${limit}&search=${encodeURIComponent(searchQuery)}`,
+//     method: "GET",
+//     headers: {
+//       Authorization: `Bearer ${token}`,
+//     },
+//     postData: {},
+//   };
+//   return invokeApi(reqObj);
+// };
+
+export const getRoles = async (page = 1, limit = 10, searchQuery = "") => {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("No token found, please login");
+
   const reqObj = {
-    path: "/roles/getRole",
+    path: `/roles/getRole?page=${page}&limit=${limit}&search=${encodeURIComponent(searchQuery)}`,
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
+      "Cache-Control": "no-cache", // ✅ prevents 304 caching issue
     },
+    postData: {},
+  };
+
+  try {
+    const res = await invokeApi(reqObj);
+
+    // ✅ Ensure response format is always predictable
+    if (res?.data && Array.isArray(res.data)) {
+      return res; // normal response with roles list
+    } else if (res?.data?.data && Array.isArray(res.data.data)) {
+      // in case invokeApi wraps response in another `data`
+      return res.data;
+    } else {
+      console.warn("Unexpected roles response:", res);
+      return { data: [] }; // fallback empty list
+    }
+  } catch (error) {
+    console.error("Error fetching roles:", error);
+    return { data: [] }; // avoid crash even if fetch fails
+  }
+};
+
+
+
+
+export const getUsers = async (page = 1, limit = 10, searchQuery = "") => {
+  const reqObj = {
+    path: `/users/getUsers?page=${page}&limit=${limit}&search=${encodeURIComponent(searchQuery)}`,
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
+    postData: {},
   };
   return invokeApi(reqObj);
 };
 
-export const getUsers = async () => {
-  const token = localStorage.getItem("token");
-  return invokeApi({
-    path: "/users/getUsers",
+export const fetchReports = async () => {
+  const reqObj = {
+    path: "/reports/getReports",   // :point_left: this must match your backend route
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  };
+  return invokeApi(reqObj);
+};
+export const fetchReportById = async (id) => {
+  const reqObj = {
+    path: `/reports/getReportById/${id}`,
+    method: "GET",
+  };
+  return invokeApi(reqObj);
 };

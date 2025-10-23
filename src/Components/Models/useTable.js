@@ -96,98 +96,125 @@ export function useTable({
         setData(response.categories || []);
         setTotalRecords(response.categories ? response.categories.length : 0);
       }
-    } else if (tableType === "Employees") {
-      response = await fetchEmployees(page, rowsPerPage, searchQuery);
-      if (response?.data) {
-        setData(response.data);
-        setTotalRecords(response.data.length);
-      }
-    } else if (tableType === "Departments") {
+    }  else if (tableType === "Employees") {
+  response = await fetchEmployees(page, rowsPerPage, searchQuery);
+  if (response.status === 400) {
+    localStorage.removeItem("Token");
+    navigate("/login");
+  } else {
+    setData(response.data);
+    setTotalRecords(response.totalPages);
+  }
+} else if (tableType === "Departments") {
       response = await fetchDepartments(page, rowsPerPage, searchQuery);
       if (response?.data) {
         setData(response.data);
         setTotalRecords(response.data.length);
       }
-    } else if (tableType === "Designations") {
-      response = await fetchDesignations(page, rowsPerPage, searchQuery);
-      if (response?.data) {
-        setData(response.data);
-        setTotalRecords(response.data.length);
-      } else if (response?.designations) {
-        setData(response.designations);
-        setTotalRecords(response.designations.length);
-      }
-    } else if (tableType === "Attendance") {
-      response = await fetchAttendance(page, rowsPerPage, searchQuery);
-      if (response?.data) {
-        const attendanceArray = Array.isArray(response.data)
-          ? response.data
-          : [response.data];
-
-        const formattedData = attendanceArray.map((att) => ({
-          ...att,
-          _id: att._id || att.attendanceId,
-          isArchived: att.isArchived ?? att.archive === "Yes",
-        }));
-
-        setData(formattedData);
-        setTotalRecords(formattedData.length);
-      }
-    } else if (tableType === "Leaves") {
-      response = await fetchLeaves(page, rowsPerPage, searchQuery);
-      if (response?.data) {
-        setData(response.data);
-        setTotalRecords(response.data.length);
-      }
-    } else if (tableType === "Jobs") {
+    }  else if (tableType === "Designations") {
+  response = await fetchDesignations(page, rowsPerPage, searchQuery);
+  if (response?.status === 400) {
+    localStorage.removeItem("Token");
+    navigate("/login");
+  } else {
+    setData(response?.data || []);
+    setTotalRecords(response?.total || 0);
+  }
+}
+ else if (tableType === "Attendance") {
+  response = await fetchAttendance(page, rowsPerPage, searchQuery);
+  if (response?.status === 400) {
+    localStorage.removeItem("Token");
+    navigate("/login");
+  } else {
+    setData(response?.data || []);
+    setTotalRecords(response?.total || 0);
+  }
+}
+ else if (tableType === "Leaves") {
+  response = await fetchLeaves(page, rowsPerPage, searchQuery);
+  if (response?.status === 400) {
+    localStorage.removeItem("Token");
+    navigate("/login");
+  } else {
+    setData(response?.data || []);
+    setTotalRecords(response?.total || 0);
+  }
+}
+else if (tableType === "Jobs") {
       response = await fetchJobs(page, rowsPerPage, searchQuery);
       if (response?.data) {
         setData(response.data);
         setTotalRecords(response.data.length);
       }
     } else if (tableType === "Applications") {
-      response = await fetchApplications(page, rowsPerPage, searchQuery);
-      if (response?.data) {
-        setData(response.data);
-        setTotalRecords(response.data.length);
-      }
-    } else if (tableType === "Performance") {
-      response = await fetchPerformance(page, rowsPerPage, searchQuery);
-      if (response?.data) {
-        setData(response.data);
-        setTotalRecords(response.data.length);
-      }
-    } else if (tableType === "Training") {
-      response = await fetchTrainings(page, rowsPerPage, searchQuery);
-      if (response?.data) {
-        setData(response.data);
-        setTotalRecords(response.data.length);
-      }
-    } else if (tableType === "Payroll") {
-      response = await fetchPayrolls(page, rowsPerPage, searchQuery);
-      if (response?.data) {
-        setData(response.data);
-        setTotalRecords(response.data.length);
-      }
-    } else if (tableType === "Fines") {
-      response = await fetchFines(page, rowsPerPage, searchQuery);
-      if (response?.data) {
-        setData(response.data);
-        setTotalRecords(response.data.length);
-      }
-    } else if (tableType === "Roles") {
-      response = await getRoles(page, rowsPerPage, searchQuery);  
-      if (response) {
-        setData(response);
-        setTotalRecords(response.length);
-      } 
-    } else if (tableType === "Users") {
-      response = await getUsers(page, rowsPerPage, searchQuery);
-      if (response) {
-        setData(response);
-        setTotalRecords(response.length);
-      } 
-    }
+  response = await fetchApplications(page, rowsPerPage, searchQuery);
+  if (response?.status === 400) {
+    localStorage.removeItem("Token");
+    navigate("/login");
+  } else {
+    setData(response?.data || []);
+    setTotalRecords(response?.total || 0);
+  }
+}
+  else if (tableType === "Performance") {
+  response = await fetchPerformance(page, rowsPerPage, searchQuery);
+  if (response?.status === 400) {
+    localStorage.removeItem("Token");
+    navigate("/login");
+  } else {
+    setData(response?.data || []);
+    setTotalRecords(response?.total || 0);
+  }
+}   else if (tableType === "Training") {
+  response = await fetchTrainings(page, rowsPerPage, searchQuery);
+  if (response?.status === 400) {
+    localStorage.removeItem("Token");
+    navigate("/login");
+  } else {
+    setData(response?.data || []);
+    setTotalRecords(response?.total || 0);
+  }
+}
+  else if (tableType === "Payroll") {
+  response = await fetchPayrolls(page, rowsPerPage, searchQuery);
+  if (response?.status === 400) {
+    localStorage.removeItem("Token");
+    navigate("/login");
+  } else {
+    setData(response?.data || []);
+    setTotalRecords(response?.total || 0);
+  }
+}  else if (tableType === "Fines") {
+  response = await fetchFines(page, rowsPerPage, searchQuery);
+  if (response?.status === 400) {
+    localStorage.removeItem("Token");
+    navigate("/login");
+  } else {
+    setData(response?.data || []);
+    setTotalRecords(response?.total || 0);
+  }
+}
+ else if (tableType === "Roles") {
+  response = await getRoles(page, rowsPerPage, searchQuery);
+  if (response?.status === 400) {
+    localStorage.removeItem("token");
+    navigate("/login");
+  } else {
+    setData(response?.data || []);
+    setTotalRecords(response?.total || 0);
+  }
+} 
+else if (tableType === "Users") {
+  response = await getUsers(page, rowsPerPage, searchQuery);
+  if (response?.status === 400) {
+    localStorage.removeItem("Token");
+    navigate("/login");
+  } else {
+    setData(response?.data || []);
+    setTotalRecords(response?.total || 0);
+  }
+}
     else {
       setData(pageData);
     }

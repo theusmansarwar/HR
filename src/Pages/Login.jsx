@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Box, Button, TextField, Typography, Paper, CircularProgress } from "@mui/material";
-import axios from "axios";
 import logo from "../Assets/zemalt-logo.png";
 import "./login.css";
 import { useAlert } from "../Components/Alert/AlertContext";

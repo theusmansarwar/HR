@@ -20,14 +20,22 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
   const [status, setStatus] = useState("active");
   const [allRoles, setAllRoles] = useState([]);
 
-  // Fetch all roles for dropdown
+  // // Fetch all roles for dropdown
+  // useEffect(() => {
+  //   const fetchRoles = async () => {
+  //     const res = await getRoles();
+  //     setAllRoles(res || []);
+  //   };
+  //   fetchRoles();
+  // }, []);
+
   useEffect(() => {
-    const fetchRoles = async () => {
-      const res = await getRoles();
-      setAllRoles(res || []);
-    };
-    fetchRoles();
-  }, []);
+  const fetchRoles = async () => {
+    const res = await getRoles();
+    setAllRoles(res?.data || []); // ✅ always safe, even if backend sends 304
+  };
+  fetchRoles();
+}, []);
 
   // Populate modal on edit
   useEffect(() => {
