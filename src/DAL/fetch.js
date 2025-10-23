@@ -262,7 +262,7 @@ export const getUsers = async (page = 1, limit = 10, searchQuery = "") => {
 
 export const fetchReports = async () => {
   const reqObj = {
-    path: "/reports/getReports",   // :point_left: this must match your backend route
+    path: "/reports/getReports",   
     method: "GET",
   };
   return invokeApi(reqObj);

@@ -17,7 +17,6 @@ const Roles = ({ currentUser }) => {
   const attributes = [
     { id: "name", label: "Role Name" },
     { id: "description", label: "Description" },
-    { id: "modules", label: "Allowed Modules" },
     { id: "status", label: "Status" },
   ];
 

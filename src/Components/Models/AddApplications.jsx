@@ -78,16 +78,13 @@ export default function AddApplication({
       });
       setId("");
     } else if (modalType === "Update" && modalData) {
+      const { jobId, applicationDate, interviewDate, ...rest } = modalData;
+
       setForm({
-        jobId: modalData?.jobId?._id || modalData?.jobId || "",
-        applicantName: modalData?.applicantName || "",
-        applicantEmail: modalData?.applicantEmail || "",
-        applicantPhone: modalData?.applicantPhone || "",
-        resume: modalData?.resume || null,
-        applicationDate: modalData?.applicationDate || "",
-        applicationStatus: modalData?.applicationStatus || "Pending",
-        interviewDate: modalData?.interviewDate || "",
-        remarks: modalData?.remarks || "",
+        jobId: jobId?._id || jobId || "",  // Ensure correct jobId is set
+        applicationDate: applicationDate ? applicationDate.split("T")[0] : "",  // Ensure correct date format
+        interviewDate: interviewDate ? interviewDate.split("T")[0] : "",  // Ensure correct date format
+        ...rest,  // Spread the remaining values
       });
       setId(modalData?._id || "");
     }
@@ -95,7 +92,7 @@ export default function AddApplication({
 
   const handleClose = () => setOpen(false);
 
-    const handleChange = (e) => {
+  const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === "resume" && files.length > 0) {
       setForm({ ...form, resume: files[0].name }); // store only file name
@@ -142,11 +139,13 @@ export default function AddApplication({
               value={form.jobId}
               onChange={handleChange}
             >
-              {jobs.map((job) => (
-                <MenuItem key={job._id} value={job._id}>
-                  {job.jobTitle}
-                </MenuItem>
-              ))}
+              {jobs.map((job) => {
+                return (
+                  <MenuItem key={job._id} value={job._id}>
+                    {job.jobTitle}
+                  </MenuItem>
+                );
+              })}
             </TextField>
           </Grid>
 
