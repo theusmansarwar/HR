@@ -18,19 +18,19 @@ const AddRole = ({ open, setOpen, modalType, modalData, allModules, onSave, onRe
   const [roleName, setRoleName] = useState("");
   const [description, setDescription] = useState("");
   const [modules, setModules] = useState([]);
-  const [status, setStatus] = useState("active");
+  const [status, setStatus] = useState("Active");
 
   useEffect(() => {
     if (modalData) {
       setRoleName(modalData.name || "");
       setDescription(modalData.description || "");
       setModules(modalData.modules || []);
-      setStatus(modalData.status || "active");
+      setStatus(modalData.status || "Active");
     } else {
       setRoleName("");
       setDescription("");
       setModules([]);
-      setStatus("active");
+      setStatus("Active");
     }
   }, [modalData]);
 
@@ -110,8 +110,8 @@ const handleSubmit = async () => {
         <TextField label="Role Name" value={roleName} onChange={e => setRoleName(e.target.value)} fullWidth margin="dense" />
         <TextField label="Description" value={description} onChange={e => setDescription(e.target.value)} fullWidth margin="dense" />
         <TextField select label="Status" value={status} onChange={e => setStatus(e.target.value)} fullWidth margin="dense">
-          <MenuItem value="active">Active</MenuItem>
-          <MenuItem value="inactive">Inactive</MenuItem>
+          <MenuItem value="Active">Active</MenuItem>
+          <MenuItem value="Inactive">Inactive</MenuItem>
         </TextField>
 
         <FormGroup row sx={{ display: "flex", flexWrap: "wrap", gap: 1, marginTop: 2 }}>

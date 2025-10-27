@@ -17,7 +17,7 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState(""); 
-  const [status, setStatus] = useState("active");
+  const [status, setStatus] = useState("Active");
   const [allRoles, setAllRoles] = useState([]);
 
   // // Fetch all roles for dropdown
@@ -44,13 +44,13 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
       setEmail(modalData.email || "");
       setPassword(""); // never prefill password
       setRole(modalData.role || "");
-      setStatus(modalData.status || "active");
+      setStatus(modalData.status || "Active");
     } else {
       setName("");
       setEmail("");
       setPassword("");
       setRole("");
-      setStatus("active");
+      setStatus("Active");
     }
   }, [modalData]);
 
@@ -135,8 +135,8 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
           onChange={(e) => setStatus(e.target.value)}
           fullWidth
         >
-          <MenuItem value="active">Active</MenuItem>
-          <MenuItem value="inactive">Inactive</MenuItem>
+          <MenuItem value="Active">Active</MenuItem>
+          <MenuItem value="Inactive">Inactive</MenuItem>
         </TextField>
       </DialogContent>
 

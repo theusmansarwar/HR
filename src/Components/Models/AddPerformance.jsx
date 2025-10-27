@@ -25,7 +25,7 @@ const style = {
   borderRadius: "12px",
 };
 
-const statuses = ["Not Archived", "Archived"];
+const statuses = ["Completed","Pending", "In Progress"];
 
 export default function AddPerformance({ open, setOpen, Modeltype, Modeldata, onSave, onResponse }) {
   const [form, setForm] = React.useState({
@@ -34,7 +34,7 @@ export default function AddPerformance({ open, setOpen, Modeltype, Modeldata, on
     appraisalDate: "",
     score: "",
     remarks: "",
-    status: "Not Archived",
+    status: "In Progress",
   });
   const [employees, setEmployees] = React.useState([]);
   const [id, setId] = React.useState("");
@@ -61,7 +61,7 @@ export default function AddPerformance({ open, setOpen, Modeltype, Modeldata, on
         appraisalDate: Modeldata?.appraisalDate ? Modeldata.appraisalDate.split("T")[0] : "",
         score: Modeldata?.score || "",
         remarks: Modeldata?.remarks || "",
-        status: Modeldata?.status || "Not Archived",
+        status: Modeldata?.status || "In Progress",
       });
       setId(Modeldata?._id || "");
     } else if (Modeltype === "Add") {
@@ -71,7 +71,7 @@ export default function AddPerformance({ open, setOpen, Modeltype, Modeldata, on
         appraisalDate: "",
         score: "",
         remarks: "",
-        status: "Not Archived",
+        status: "In Progress",
       });
       setId("");
     }
