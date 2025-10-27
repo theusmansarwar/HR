@@ -3,11 +3,16 @@
   --success-color: #0f5132;
   --success-bgcolor: #d1e7dd;
 
+ --pending-color: #b76e00;     /* A rich amber/orange tone */
+  --pending-bgcolor: #fff8e1;
+
   --error-color: #842029;
   --error-bgcolor: #f8d7da;
 
-  --warning-color: #664d03;
-  --warning-bgcolor: #fff3cd;
+  --warning-color: #6d4c41;
+  --warning-bgcolor: #efebe9 ;
+
+   
 
   --info-color: #055160;
   --info-bgcolor: #cff4fc;
@@ -34,10 +39,8 @@
   --default-p-size: 16px;
   --default-p-size2: 14px;
   --default-border-radius: 6px;
-  --warning-color: rgb(255, 38, 0);
-   --warning-bgcolor: rgba(255, 38, 0, 0.426);
-  --success-color: rgb(0, 101, 0);
-  --success-bgcolor:rgba(2, 216, 2, 0.512);
+ 
+  
   --horizontal-gradient: linear-gradient(to right, #334EAC, #081F5C);
   --white-color: #FFFFFF;
 --border-radius-secondary: 4px;

@@ -85,45 +85,56 @@ export function useTable({
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
 
-//   const getStatusStyles = (status) => {
-//   switch (status) {
-//     case "Active":
-//       return {
-//         color: "var(--success-color)",
-//         background: "var(--success-bgcolor)",
-//       };
-//     case "Inactive":
-//       return {
-//         color: "var(--error-color)",
-//         background: "var(--error-bgcolor)",
-//       };
-//     case "Pending":
-//       return {
-//         color: "var(--warning-color)",
-//         background: "var(--warning-bgcolor)",
-//       };
-//     case "Approved":
-//       return {
-//         color: "var(--info-color)",
-//         background: "var(--info-bgcolor)",
-//       };
-//     case "Completed":
-//       return {
-//         color: "var(--success-color)",
-//         background: "var(--success-bgcolor)",
-//       };
-//     case "Rejected":
-//       return {
-//         color: "var(--error-color)",
-//         background: "var(--error-bgcolor)",
-//       };
-//     default:
-//       return {
-//         color: "var(--neutral-color)",
-//         background: "var(--neutral-bgcolor)",
-//       };
-//   }
-// };
+  const getStatusStyles = (status) => {
+  switch (status) {
+    case "Active":
+      case "Approved":
+        case "Completed":
+           case "Present":
+            case "Paid":
+      return {
+        color: "var(--success-color)",
+        background: "var(--success-bgcolor)",
+      };
+    case "Terminated":
+    case "Rejected":
+    case "Inactive":
+       case "Absent":
+        case "Unpaid":
+      return {
+        color: "var(--error-color)",
+        background: "var(--error-bgcolor)",
+      };
+     
+    case "Resigned":
+      case "Late":
+      case "In Progress":
+      case "Closed": 
+      return {
+        color: "var(--pending-color)",
+        background: "var(--pending-bgcolor)",
+      };
+    case "On Leave":
+      case "Leave":
+      return {
+        color: "var(--info-color)",
+        background: "var(--info-bgcolor)",
+      };
+    case "Half Day":
+     case "Pending":
+        
+      return{
+         color: "var(--warning-color)",
+        background: "var(--warning-bgcolor)",
+      }
+    
+    default:
+      return {
+        color: "var(--neutral-color)",
+        background: "var(--neutral-bgcolor)",
+      };
+  }
+};
 
   const fetchData = async () => {
     let response;
@@ -545,23 +556,21 @@ else if (tableType === "Users") {
                           attr.id === "postingDate"||attr.id === "expiryDate"|| attr.id === "fineDate"||  attr.id === "paymentDate"|| attr.id === "publishedDate" ? (
                               formatDate(row[attr.id])
                             ) : attr.id === "status" ? (
-                              <span
-                                style={{
-                                  color: row[attr.id]==="Active"
-                                    ? "var(--success-color)"
-                                    : "var(--warning-color)",
-                                  background: row[attr.id] ==="Active"
-                                    ? "var(--success-bgcolor)"
-                                    : "var(--warning-bgcolor)",
-                                  padding: "5px",
-                                  minWidth: "200px",
-                                  borderRadius:
-                                    "var(--border-radius-secondary)",
-                                }}
-                              >
-                                {row[attr.id]==="Active" ? "Active" : "InActive"}
-                              </span>
-                            ) : row[attr.id] === 0 ? (
+  <span
+    style={{
+      ...getStatusStyles(row[attr.id]),
+      fontWeight: "600",
+      padding: "5px 10px",
+      borderRadius: "var(--border-radius-secondary)",
+      display: "inline-block",
+      textAlign: "center",
+      minWidth: "100px",
+    }}
+  >
+    {row[attr.id] || "N/A"}
+  </span>
+)
+ : row[attr.id] === 0 ? (
                               0
                             ) : typeof getNestedValue(row, attr.id) ===
                               "string" ? (
