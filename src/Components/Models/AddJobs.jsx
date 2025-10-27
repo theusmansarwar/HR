@@ -42,14 +42,13 @@ export default function AddJobs({
     status: "Active",
     postingDate: "",
     expiryDate: "",
-    socialMediaLinks: "",
   });
 
   const [departments, setDepartments] = React.useState([]);
   const [designations, setDesignations] = React.useState([]);
   const [id, setId] = React.useState("");
 
-  // ✅ Fetch dropdown data on mount
+  // Fetch dropdown data on mount
   React.useEffect(() => {
     const loadDropdownData = async () => {
       try {
@@ -79,7 +78,6 @@ export default function AddJobs({
         expiryDate: Modeldata?.expiryDate
           ? Modeldata.expiryDate.split("T")[0]
           : "",
-        socialMediaLinks: Modeldata?.socialMediaLinks?.join(", ") || "",
       });
       setId(Modeldata?._id || "");
     } else {
@@ -91,7 +89,6 @@ export default function AddJobs({
         status: "Active",
         postingDate: "",
         expiryDate: "",
-        socialMediaLinks: "",
       });
       setId("");
     }
@@ -109,9 +106,6 @@ export default function AddJobs({
     try {
       const payload = {
         ...form,
-        socialMediaLinks: form.socialMediaLinks
-          ? form.socialMediaLinks.split(",").map((link) => link.trim())
-          : [],
       };
 
       let response;
@@ -146,150 +140,162 @@ export default function AddJobs({
 
   return (
     <Modal open={open} onClose={handleClose}>
-      <Box sx={style}>
-        <Typography variant="h6" mb={2}>
-          {Modeltype} Job
-        </Typography>
+  <Box sx={style}>
+    {/* Left-Aligned Heading */}
+    <Typography
+      variant="h6"
+      mb={2}
+      // fontWeight={600}
+      textAlign="left"
+      // sx={{ color: "primary.main" }} // optional: gives it a nice blue tone
+    >
+      {Modeltype} Job
+    </Typography>
 
-        {Modeldata && (
-          <Grid container spacing={2} mb={2}>
-            <Grid item xs={6}>
-              <TextField
-                label="Job ID"
-                value={Modeldata.jobId}
-                fullWidth
-                disabled
-              />
-            </Grid>
-          </Grid>
-        )}
-
-        <Grid container spacing={2}>
-          <Grid item xs={6}>
-            <TextField
-              label="Job Title"
-              name="jobTitle"
-              fullWidth
-              required
-              value={form.jobTitle}
-              onChange={handleChange}
-            />
-          </Grid>
-
-          <Grid item xs={6}>
-            <TextField
-              label="Job Description"
-              name="jobDescription"
-              fullWidth
-              required
-              value={form.jobDescription}
-              onChange={handleChange}
-            />
-          </Grid>
-
-          {/* ✅ Department Dropdown */}
-          <Grid item xs={6}>
-            <TextField
-              select
-              label="Select Department"
-              name="departmentId"
-              fullWidth
-              required
-              value={form.departmentId}
-              onChange={handleChange}
-            >
-              <MenuItem value="">Select Department</MenuItem>
-              {departments.map((dep) => (
-                <MenuItem key={dep._id} value={dep._id}>
-                  {dep.departmentName}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-
-          {/* ✅ Designation Dropdown */}
-          <Grid item xs={6}>
-            <TextField
-              select
-              label="Select Designation"
-              name="designationId"
-              fullWidth
-              required
-              value={form.designationId}
-              onChange={handleChange}
-            >
-              <MenuItem value="">Select Designation</MenuItem>
-              {designations.map((des) => (
-                <MenuItem key={des._id} value={des._id}>
-                  {des.designationName}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-
-          <Grid item xs={6}>
-            <TextField
-              select
-              label="Status"
-              name="status"
-              fullWidth
-              value={form.status}
-              onChange={handleChange}
-            >
-              {statuses.map((status) => (
-                <MenuItem key={status} value={status}>
-                  {status}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-
-          <Grid item xs={6}>
-            <TextField
-              type="date"
-              label="Posting Date"
-              name="postingDate"
-              InputLabelProps={{ shrink: true }}
-              fullWidth
-              required
-              value={form.postingDate}
-              onChange={handleChange}
-            />
-          </Grid>
-
-          <Grid item xs={6}>
-            <TextField
-              type="date"
-              label="Expiry Date"
-              name="expiryDate"
-              InputLabelProps={{ shrink: true }}
-              fullWidth
-              required
-              value={form.expiryDate}
-              onChange={handleChange}
-            />
-          </Grid>
-
-          <Grid item xs={12}>
-            <TextField
-              label="Social Media Links (comma separated)"
-              name="socialMediaLinks"
-              fullWidth
-              value={form.socialMediaLinks}
-              onChange={handleChange}
-            />
-          </Grid>
+    {Modeldata && (
+      <Grid container spacing={2} mb={2}>
+        <Grid item xs={6}>
+          <TextField
+            label="Job ID"
+            value={Modeldata.jobId}
+            fullWidth
+            disabled
+          />
         </Grid>
+      </Grid>
+    )}
 
-        <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
-          <Button onClick={handleClose} variant="contained" color="error">
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} variant="contained" color="primary">
-            Submit
-          </Button>
-        </Box>
-      </Box>
-    </Modal>
+    <Grid container spacing={2}>
+      {/* Job Title */}
+      <Grid item xs={6}>
+        <TextField
+          label="Job Title"
+          name="jobTitle"
+          fullWidth
+          required
+          value={form.jobTitle}
+          onChange={handleChange}
+        />
+      </Grid>
+
+      {/* Department */}
+      <Grid item xs={6}>
+        <TextField
+          select
+          label="Select Department"
+          name="departmentId"
+          fullWidth
+          required
+          value={form.departmentId}
+          onChange={handleChange}
+        >
+          <MenuItem value="">Select Department</MenuItem>
+          {departments.map((dep) => (
+            <MenuItem key={dep._id} value={dep._id}>
+              {dep.departmentName}
+            </MenuItem>
+          ))}
+        </TextField>
+      </Grid>
+
+      {/* Designation */}
+      <Grid item xs={6}>
+        <TextField
+          select
+          label="Select Designation"
+          name="designationId"
+          fullWidth
+          required
+          value={form.designationId}
+          onChange={handleChange}
+        >
+          <MenuItem value="">Select Designation</MenuItem>
+          {designations.map((des) => (
+            <MenuItem key={des._id} value={des._id}>
+              {des.designationName}
+            </MenuItem>
+          ))}
+        </TextField>
+      </Grid>
+
+      {/* Status */}
+      <Grid item xs={6}>
+        <TextField
+          select
+          label="Status"
+          name="status"
+          fullWidth
+          value={form.status}
+          onChange={handleChange}
+        >
+          {statuses.map((status) => (
+            <MenuItem key={status} value={status}>
+              {status}
+            </MenuItem>
+          ))}
+        </TextField>
+      </Grid>
+
+      {/* Posting Date */}
+      <Grid item xs={6}>
+        <TextField
+          type="date"
+          label="Posting Date"
+          name="postingDate"
+          InputLabelProps={{ shrink: true }}
+          fullWidth
+          required
+          value={form.postingDate}
+          onChange={handleChange}
+        />
+      </Grid>
+
+      {/* Expiry Date */}
+      <Grid item xs={6}>
+        <TextField
+          type="date"
+          label="Expiry Date"
+          name="expiryDate"
+          InputLabelProps={{ shrink: true }}
+          fullWidth
+          required
+          value={form.expiryDate}
+          onChange={handleChange}
+        />
+      </Grid>
+
+      {/* Job Description */}
+      <Grid item xs={12}>
+        <TextField
+          label="Job Description"
+          name="jobDescription"
+          fullWidth
+          required
+          value={form.jobDescription}
+          onChange={handleChange}
+          multiline
+          rows={4}
+          sx={{
+            "& .MuiInputBase-root": {
+              alignItems: "flex-start",
+            },
+          }}
+        />
+      </Grid>
+    </Grid>
+
+    {/* Buttons */}
+    <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
+      <Button onClick={handleClose} variant="outlined" color="error">
+        Cancel
+      </Button>
+      <Button onClick={handleSubmit} variant="contained" color="primary">
+        Submit
+      </Button>
+    </Box>
+  </Box>
+</Modal>
+
+
   );
 }

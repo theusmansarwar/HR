@@ -10,8 +10,7 @@ import {
 } from "@mui/material";
 import { createDesignation } from "../../DAL/create";
 import { updateDesignation } from "../../DAL/edit";
-import { fetchDepartments } from "../../DAL/fetch";
-import { fetchDesignations } from "../../DAL/fetch"; // optional if you need last id logic
+import { fetchDepartments, fetchDesignations } from "../../DAL/fetch";
 
 const style = {
   position: "absolute",
@@ -25,7 +24,7 @@ const style = {
   boxShadow: 24,
   p: 4,
   borderRadius: "12px",
-  "&::-webkit-scrollbar": { display: "none" }, // hides scrollbar
+  "&::-webkit-scrollbar": { display: "none" },
 };
 
 const statusOptions = ["Active", "Inactive"];
@@ -48,6 +47,7 @@ export default function AddDesignation({
 
   const [id, setId] = React.useState("");
   const [departments, setDepartments] = React.useState([]);
+  const [errors, setErrors] = React.useState({});
 
   // Fetch Departments
   React.useEffect(() => {
@@ -113,16 +113,44 @@ export default function AddDesignation({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+    setErrors((prev) => ({ ...prev, [name]: "" })); // clear error on change
+  };
+
+  // Local validation before sending
+  const validateForm = () => {
+    const newErrors = {};
+    if (!form.designationName?.trim())
+      newErrors.designationName = "Designation name is required";
+    if (!form.departmentId)
+      newErrors.departmentId = "Department selection is required";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
+
     try {
       let response;
       if (Modeltype === "Add") {
         response = await createDesignation(form);
       } else {
         response = await updateDesignation(id, form);
+      }
+
+      // ✅ Handle missing fields from backend (like Testimonials)
+      if (response?.data?.missingFields || response?.missingFields) {
+        const missingFields =
+          response.data?.missingFields || response.missingFields;
+        const backendErrors = {};
+        missingFields.forEach((field) => {
+          backendErrors[field] = `${field
+            .replace(/([A-Z])/g, " $1")
+            .replace(/^./, (str) => str.toUpperCase())} is required`;
+        });
+        setErrors(backendErrors);
+        return;
       }
 
       if (response?.data) {
@@ -139,6 +167,19 @@ export default function AddDesignation({
         });
       }
     } catch (err) {
+      // ✅ Catch backend missingFields from error response
+      if (err.response?.data?.missingFields) {
+        const missingFields = err.response.data.missingFields;
+        const backendErrors = {};
+        missingFields.forEach((field) => {
+          backendErrors[field] = `${field
+            .replace(/([A-Z])/g, " $1")
+            .replace(/^./, (str) => str.toUpperCase())} is required`;
+        });
+        setErrors(backendErrors);
+        return;
+      }
+
       console.error("Error saving designation:", err);
       onResponse({
         messageType: "error",
@@ -172,7 +213,8 @@ export default function AddDesignation({
               fullWidth
               value={form.designationName}
               onChange={handleChange}
-              required
+              error={!!errors.designationName}
+              helperText={errors.designationName}
             />
           </Grid>
 
@@ -184,7 +226,8 @@ export default function AddDesignation({
               fullWidth
               value={form.departmentId}
               onChange={handleChange}
-              required
+              error={!!errors.departmentId}
+              helperText={errors.departmentId}
             >
               {departments.map((dep) => (
                 <MenuItem key={dep._id} value={dep._id}>
@@ -193,30 +236,6 @@ export default function AddDesignation({
               ))}
             </TextField>
           </Grid>
-
-          {/* <Grid item xs={6}>
-            <TextField
-              type="date"
-              label="Created Date"
-              name="createdDate"
-              InputLabelProps={{ shrink: true }}
-              fullWidth
-              value={form.createdDate}
-              onChange={handleChange}
-            />
-          </Grid>
-
-          <Grid item xs={6}>
-            <TextField
-              type="date"
-              label="Updated Date"
-              name="updatedDate"
-              InputLabelProps={{ shrink: true }}
-              fullWidth
-              value={form.updatedDate}
-              onChange={handleChange}
-            />
-          </Grid> */}
 
           <Grid item xs={6} display="flex" alignItems="center" gap={1}>
             <input

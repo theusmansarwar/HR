@@ -30,7 +30,7 @@ const statuses = ["Pending", "Shortlisted", "Rejected", "Hired"];
 export default function AddApplication({
   open,
   setOpen,
-  modalType, // ✅ fixed naming
+  modalType, 
   modalData,
   onResponse,
   onSave,
@@ -49,7 +49,6 @@ export default function AddApplication({
   const [id, setId] = useState("");
   const [jobs, setJobs] = useState([]);
 
-  // ✅ Fetch jobs for dropdown
   useEffect(() => {
     const getJobs = async () => {
       try {
@@ -62,7 +61,6 @@ export default function AddApplication({
     getJobs();
   }, []);
 
-  // ✅ Initialize form whenever modalType or modalData changes
   useEffect(() => {
     if (modalType === "Add") {
       setForm({
