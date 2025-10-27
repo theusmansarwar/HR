@@ -89,30 +89,32 @@ export default function AddAttendance({ open, setOpen, Modeltype, Modeldata, onS
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      let response;
-      if (Modeltype === "Add") {
-        response = await createAttendance(form);
-      } else {
-        response = await updateAttendance(id, form);
-      }
-
-      if (response?.status === 200 || response?.status === 201) {
-        showAlert("success", response.message || `${Modeltype} successful`);
-        onSave?.(response.data);
-        onResponse?.({ messageType: "success", message: response.message || `${Modeltype} successful` });
-        handleClose(); // ✅ close modal
-      } else {
-        showAlert("error", response.message || "Something went wrong");
-        onResponse?.({ messageType: "error", message: response.message || "Something went wrong" });
-      }
-    } catch (error) {
-      console.error("Attendance save error:", error);
-      showAlert("error", "Something went wrong. Try again later.");
-      onResponse?.({ messageType: "error", message: "Something went wrong. Try again later." });
+  e.preventDefault();
+  try {
+    let response;
+    if (Modeltype === "Add") {
+      response = await createAttendance(form);
+    } else {
+      response = await updateAttendance(id, form);
     }
-  };
+
+    const message = response?.message || response?.data?.message || "";
+
+    if (message.toLowerCase().includes("success")) {
+      showAlert("success", message || `${Modeltype} successful`);
+      onSave?.(response.data?.data || response.data);
+      onResponse?.({ messageType: "success", message });
+      handleClose();
+    } else {
+      showAlert("error", message || "Something went wrong");
+      onResponse?.({ messageType: "error", message: message || "Something went wrong" });
+    }
+  } catch (error) {
+    console.error("Error submitting attendance:", error);
+    showAlert("error", "Failed to submit attendance");
+  }
+};
+
 
   return (
     <Modal open={open} onClose={handleClose}>
