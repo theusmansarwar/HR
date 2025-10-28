@@ -1,5 +1,13 @@
 import * as React from "react";
-import { Box, Button, Typography, Modal, TextField, MenuItem, Grid } from "@mui/material";
+import {
+  Box,
+  Button,
+  Typography,
+  Modal,
+  TextField,
+  MenuItem,
+  Grid,
+} from "@mui/material";
 import { createAttendance } from "../../DAL/create";
 import { updateAttendance } from "../../DAL/edit";
 import { fetchEmployees } from "../../DAL/fetch";
@@ -20,13 +28,19 @@ const style = {
 const statuses = ["Present", "Absent", "Leave", "Late", "Half Day"];
 const shifts = ["Morning", "Evening", "Night"];
 
-export default function AddAttendance({ open, setOpen, Modeltype, Modeldata, onSave, onResponse }) {
+export default function AddAttendance({
+  open,
+  setOpen,
+  Modeltype,
+  Modeldata,
+  onSave,
+  onResponse,
+}) {
   const { showAlert } = useAlert();
 
   const initialForm = {
     attendanceId: "",
     employeeId: "",
-    // date: "",
     status: "Present",
     checkInTime: "",
     checkOutTime: "",
@@ -35,6 +49,7 @@ export default function AddAttendance({ open, setOpen, Modeltype, Modeldata, onS
   };
 
   const [form, setForm] = React.useState(initialForm);
+  const [errors, setErrors] = React.useState({});
   const [employees, setEmployees] = React.useState([]);
   const [id, setId] = React.useState("");
 
@@ -54,16 +69,14 @@ export default function AddAttendance({ open, setOpen, Modeltype, Modeldata, onS
   // Prefill form for edit
   React.useEffect(() => {
     if (Modeldata) {
-      const selectedEmployeeId = typeof Modeldata.employeeId === "object"
-        ? Modeldata.employeeId._id
-        : Modeldata.employeeId;
-
-      // const formattedDate = Modeldata.date ? Modeldata.date.split("T")[0] : "";
+      const selectedEmployeeId =
+        typeof Modeldata.employeeId === "object"
+          ? Modeldata.employeeId._id
+          : Modeldata.employeeId;
 
       setForm({
         attendanceId: Modeldata.attendanceId || "",
         employeeId: selectedEmployeeId || "",
-        // date: formattedDate,
         status: Modeldata.status || "Present",
         checkInTime: Modeldata.checkInTime || "",
         checkOutTime: Modeldata.checkOutTime || "",
@@ -78,6 +91,7 @@ export default function AddAttendance({ open, setOpen, Modeltype, Modeldata, onS
   }, [Modeldata]);
 
   const handleClose = () => {
+    setErrors({});
     setOpen(false);
     setForm(initialForm);
     setId("");
@@ -85,41 +99,83 @@ export default function AddAttendance({ open, setOpen, Modeltype, Modeldata, onS
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    // trim string values
+    const trimmedValue = typeof value === "string" ? value.trim() : value;
+    setForm((prev) => ({ ...prev, [name]: trimmedValue }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    let response;
-    if (Modeltype === "Add") {
-      response = await createAttendance(form);
-    } else {
-      response = await updateAttendance(id, form);
+    e.preventDefault();
+    setErrors({});
+
+    try {
+      const payload = { ...form };
+      let response;
+
+      if (Modeltype === "Add") {
+        response = await createAttendance(payload);
+      } else {
+        response = await updateAttendance(id, payload);
+      }
+
+      // ✅ success case
+      if (response.status === 200 || response.status === 201) {
+        showAlert("success", response.message || "Attendance saved successfully");
+        onSave?.(response.data);
+        onResponse?.({
+          messageType: "success",
+          message: response.message || "Attendance saved successfully",
+        });
+        handleClose();
+      }
+      // ⚠️ backend validation errors
+      else if (response.status === 400 && response.missingFields) {
+        const fieldErrors = {};
+        response.missingFields.forEach((f) => {
+          fieldErrors[f.name] = f.message;
+        });
+        setErrors(fieldErrors);
+        showAlert("error", response.message || "Validation failed");
+        onResponse?.({
+          messageType: "error",
+          message: response.message || "Validation failed",
+        });
+      }
+      // ❌ other errors
+      else {
+        showAlert("error", response.message || "Something went wrong");
+        onResponse?.({
+          messageType: "error",
+          message: response.message || "Something went wrong",
+        });
+      }
+    } catch (error) {
+      console.error("Error submitting attendance:", error);
+      showAlert("error", "Internal Server Error");
+      onResponse?.({ messageType: "error", message: "Internal Server Error" });
     }
-
-    const message = response?.message || response?.data?.message || "";
-
-    if (message.toLowerCase().includes("success")) {
-      showAlert("success", message || `${Modeltype} successful`);
-      onSave?.(response.data?.data || response.data);
-      onResponse?.({ messageType: "success", message });
-      handleClose();
-    } else {
-      showAlert("error", message || "Something went wrong");
-      onResponse?.({ messageType: "error", message: message || "Something went wrong" });
-    }
-  } catch (error) {
-    console.error("Error submitting attendance:", error);
-    showAlert("error", "Failed to submit attendance");
-  }
-};
-
+  };
 
   return (
     <Modal open={open} onClose={handleClose}>
       <Box sx={style}>
-        <Typography variant="h6" mb={2}>{Modeltype} Attendance</Typography>
+        <Typography variant="h6" mb={2}>
+          {Modeltype} Attendance
+        </Typography>
+
+        {Modeldata && (
+          <Grid container spacing={2} mb={2}>
+            <Grid item xs={6}>
+              <TextField
+                label="Attendance ID"
+                value={Modeldata.attendanceId}
+                fullWidth
+                disabled
+              />
+            </Grid>
+          </Grid>
+        )}
 
         <Grid container spacing={2}>
           <Grid item xs={6}>
@@ -131,6 +187,8 @@ export default function AddAttendance({ open, setOpen, Modeltype, Modeldata, onS
               required
               value={form.employeeId}
               onChange={handleChange}
+              error={!!errors.employeeId}
+              helperText={errors.employeeId}
             >
               <MenuItem value="">Select Employee</MenuItem>
               {employees.map((emp) => (
@@ -141,47 +199,91 @@ export default function AddAttendance({ open, setOpen, Modeltype, Modeldata, onS
             </TextField>
           </Grid>
 
-          {/* <Grid item xs={6}>
+          <Grid item xs={6}>
             <TextField
-              type="date"
-              label="Date"
-              name="date"
-              InputLabelProps={{ shrink: true }}
+              select
+              label="Status"
+              name="status"
+              fullWidth
+              value={form.status}
+              onChange={handleChange}
+              error={!!errors.status}
+              helperText={errors.status}
+            >
+              {statuses.map((s) => (
+                <MenuItem key={s} value={s}>
+                  {s}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+
+          <Grid item xs={6}>
+            <TextField
+              select
+              label="Shift"
+              name="shiftName"
+              fullWidth
+              value={form.shiftName}
+              onChange={handleChange}
+              error={!!errors.shiftName}
+              helperText={errors.shiftName}
+            >
+              {shifts.map((s) => (
+                <MenuItem key={s} value={s}>
+                  {s}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+
+          <Grid item xs={6}>
+            <TextField
+              label="Check In Time"
+              name="checkInTime"
               fullWidth
               required
-              value={form.date}
+              value={form.checkInTime}
               onChange={handleChange}
+              error={!!errors.checkInTime}
+              helperText={errors.checkInTime}
             />
-          </Grid> */}
-
-          <Grid item xs={6}>
-            <TextField select label="Status" name="status" fullWidth value={form.status} onChange={handleChange}>
-              {statuses.map((s) => (<MenuItem key={s} value={s}>{s}</MenuItem>))}
-            </TextField>
           </Grid>
 
           <Grid item xs={6}>
-            <TextField select label="Shift" name="shiftName" fullWidth value={form.shiftName} onChange={handleChange}>
-              {shifts.map((s) => (<MenuItem key={s} value={s}>{s}</MenuItem>))}
-            </TextField>
+            <TextField
+              label="Check Out Time"
+              name="checkOutTime"
+              fullWidth
+              required
+              value={form.checkOutTime}
+              onChange={handleChange}
+              error={!!errors.checkOutTime}
+              helperText={errors.checkOutTime}
+            />
           </Grid>
 
           <Grid item xs={6}>
-            <TextField label="Check In Time" name="checkInTime" fullWidth required value={form.checkInTime} onChange={handleChange} />
-          </Grid>
-
-          <Grid item xs={6}>
-            <TextField label="Check Out Time" name="checkOutTime" fullWidth required value={form.checkOutTime} onChange={handleChange} />
-          </Grid>
-
-          <Grid item xs={6}>
-            <TextField label="Overtime Hours" name="overtimeHours" type="number" fullWidth value={form.overtimeHours} onChange={handleChange} />
+            <TextField
+              label="Overtime Hours"
+              name="overtimeHours"
+              type="number"
+              fullWidth
+              value={form.overtimeHours}
+              onChange={handleChange}
+              error={!!errors.overtimeHours}
+              helperText={errors.overtimeHours}
+            />
           </Grid>
         </Grid>
 
         <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
-          <Button onClick={handleClose} variant="contained" color="error">Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained" color="primary">Submit</Button>
+          <Button onClick={handleClose} variant="contained" color="error">
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} variant="contained" color="primary">
+            Submit
+          </Button>
         </Box>
       </Box>
     </Modal>

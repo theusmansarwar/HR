@@ -44,11 +44,12 @@ export default function AddJobs({
     expiryDate: "",
   });
 
+  const [errors, setErrors] = React.useState({});
   const [departments, setDepartments] = React.useState([]);
   const [designations, setDesignations] = React.useState([]);
   const [id, setId] = React.useState("");
 
-  // Fetch dropdown data on mount
+  // Fetch dropdown data
   React.useEffect(() => {
     const loadDropdownData = async () => {
       try {
@@ -64,6 +65,7 @@ export default function AddJobs({
     loadDropdownData();
   }, []);
 
+  // Pre-fill if editing
   React.useEffect(() => {
     if (Modeldata) {
       setForm({
@@ -94,208 +96,233 @@ export default function AddJobs({
     }
   }, [Modeldata]);
 
-  const handleClose = () => setOpen(false);
+const handleClose = () => {
+  setErrors({});
+  setForm({
+    jobTitle: "",
+    jobDescription: "",
+    departmentId: "",
+    designationId: "",
+    postedBy: "",
+    status: "Active",
+    postingDate: "",
+    expiryDate: "",
+  });
+  setOpen(false);
+};
+
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const payload = {
-        ...form,
-      };
+    setErrors({});
 
+    try {
+      const payload = { ...form };
       let response;
+
       if (Modeltype === "Add") {
         response = await createJobs(payload);
       } else {
         response = await updateJob(id, payload);
       }
 
-      if (response?.data) {
+      if (response?.status === 400 && response?.missingFields) {
+        // 🟥 show specific validation messages
+        const newErrors = {};
+        response.missingFields.forEach((f) => {
+          newErrors[f.name] = f.message;
+        });
+        setErrors(newErrors);
+        return;
+      }
+
+      if (response?.status === 200 || response?.status === 201) {
         onSave(response.data);
         onResponse({
           messageType: "success",
           message: response.message || "Job saved successfully",
         });
+        setOpen(false);
       } else {
         onResponse({
           messageType: "error",
-          message: response.message || "Something went wrong",
+          message: response?.message || "Something went wrong",
         });
       }
-
-      setOpen(false);
     } catch (error) {
       console.error("Error saving job:", error);
       onResponse({
         messageType: "error",
-        message: "Error saving job",
+        message: "Server error while saving job",
       });
     }
   };
 
   return (
     <Modal open={open} onClose={handleClose}>
-  <Box sx={style}>
-    {/* Left-Aligned Heading */}
-    <Typography
-      variant="h6"
-      mb={2}
-      // fontWeight={600}
-      textAlign="left"
-      // sx={{ color: "primary.main" }} // optional: gives it a nice blue tone
-    >
-      {Modeltype} Job
-    </Typography>
+      <Box sx={style}>
+        <Typography variant="h6" mb={2} textAlign="left">
+          {Modeltype} Job
+        </Typography>
 
-    {Modeldata && (
-      <Grid container spacing={2} mb={2}>
-        <Grid item xs={6}>
-          <TextField
-            label="Job ID"
-            value={Modeldata.jobId}
-            fullWidth
-            disabled
-          />
+        {Modeldata && (
+          <Grid container spacing={2} mb={2}>
+            <Grid item xs={6}>
+              <TextField
+                label="Job ID"
+                value={Modeldata.jobId}
+                fullWidth
+                disabled
+              />
+            </Grid>
+          </Grid>
+        )}
+
+        <Grid container spacing={2}>
+          {/* Job Title */}
+          <Grid item xs={6}>
+            <TextField
+              label="Job Title"
+              name="jobTitle"
+              fullWidth
+              required
+              value={form.jobTitle}
+              onChange={handleChange}
+              error={!!errors.jobTitle}
+              helperText={errors.jobTitle}
+            />
+          </Grid>
+
+          {/* Department */}
+          <Grid item xs={6}>
+            <TextField
+              select
+              label="Select Department"
+              name="departmentId"
+              fullWidth
+              required
+              value={form.departmentId}
+              onChange={handleChange}
+              error={!!errors.departmentId}
+              helperText={errors.departmentId}
+            >
+              <MenuItem value="">Select Department</MenuItem>
+              {departments.map((dep) => (
+                <MenuItem key={dep._id} value={dep._id}>
+                  {dep.departmentName}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+
+          {/* Designation */}
+          <Grid item xs={6}>
+            <TextField
+              select
+              label="Select Designation"
+              name="designationId"
+              fullWidth
+              required
+              value={form.designationId}
+              onChange={handleChange}
+              error={!!errors.designationId}
+              helperText={errors.designationId}
+            >
+              <MenuItem value="">Select Designation</MenuItem>
+              {designations.map((des) => (
+                <MenuItem key={des._id} value={des._id}>
+                  {des.designationName}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+
+          {/* Status */}
+          <Grid item xs={6}>
+            <TextField
+              select
+              label="Status"
+              name="status"
+              fullWidth
+              value={form.status}
+              onChange={handleChange}
+              error={!!errors.status}
+              helperText={errors.status}
+            >
+              {statuses.map((status) => (
+                <MenuItem key={status} value={status}>
+                  {status}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+
+          {/* Posting Date */}
+          <Grid item xs={6}>
+            <TextField
+              type="date"
+              label="Posting Date"
+              name="postingDate"
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+              required
+              value={form.postingDate}
+              onChange={handleChange}
+              error={!!errors.postingDate}
+              helperText={errors.postingDate}
+            />
+          </Grid>
+
+          {/* Expiry Date */}
+          <Grid item xs={6}>
+            <TextField
+              type="date"
+              label="Expiry Date"
+              name="expiryDate"
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+              required
+              value={form.expiryDate}
+              onChange={handleChange}
+              error={!!errors.expiryDate}
+              helperText={errors.expiryDate}
+            />
+          </Grid>
+
+          {/* Job Description */}
+          <Grid item xs={12}>
+            <TextField
+              label="Job Description"
+              name="jobDescription"
+              fullWidth
+              required
+              value={form.jobDescription}
+              onChange={handleChange}
+              multiline
+              rows={4}
+              error={!!errors.jobDescription}
+              helperText={errors.jobDescription}
+            />
+          </Grid>
         </Grid>
-      </Grid>
-    )}
 
-    <Grid container spacing={2}>
-      {/* Job Title */}
-      <Grid item xs={6}>
-        <TextField
-          label="Job Title"
-          name="jobTitle"
-          fullWidth
-          required
-          value={form.jobTitle}
-          onChange={handleChange}
-        />
-      </Grid>
-
-      {/* Department */}
-      <Grid item xs={6}>
-        <TextField
-          select
-          label="Select Department"
-          name="departmentId"
-          fullWidth
-          required
-          value={form.departmentId}
-          onChange={handleChange}
-        >
-          <MenuItem value="">Select Department</MenuItem>
-          {departments.map((dep) => (
-            <MenuItem key={dep._id} value={dep._id}>
-              {dep.departmentName}
-            </MenuItem>
-          ))}
-        </TextField>
-      </Grid>
-
-      {/* Designation */}
-      <Grid item xs={6}>
-        <TextField
-          select
-          label="Select Designation"
-          name="designationId"
-          fullWidth
-          required
-          value={form.designationId}
-          onChange={handleChange}
-        >
-          <MenuItem value="">Select Designation</MenuItem>
-          {designations.map((des) => (
-            <MenuItem key={des._id} value={des._id}>
-              {des.designationName}
-            </MenuItem>
-          ))}
-        </TextField>
-      </Grid>
-
-      {/* Status */}
-      <Grid item xs={6}>
-        <TextField
-          select
-          label="Status"
-          name="status"
-          fullWidth
-          value={form.status}
-          onChange={handleChange}
-        >
-          {statuses.map((status) => (
-            <MenuItem key={status} value={status}>
-              {status}
-            </MenuItem>
-          ))}
-        </TextField>
-      </Grid>
-
-      {/* Posting Date */}
-      <Grid item xs={6}>
-        <TextField
-          type="date"
-          label="Posting Date"
-          name="postingDate"
-          InputLabelProps={{ shrink: true }}
-          fullWidth
-          required
-          value={form.postingDate}
-          onChange={handleChange}
-        />
-      </Grid>
-
-      {/* Expiry Date */}
-      <Grid item xs={6}>
-        <TextField
-          type="date"
-          label="Expiry Date"
-          name="expiryDate"
-          InputLabelProps={{ shrink: true }}
-          fullWidth
-          required
-          value={form.expiryDate}
-          onChange={handleChange}
-        />
-      </Grid>
-
-      {/* Job Description */}
-      <Grid item xs={12}>
-        <TextField
-          label="Job Description"
-          name="jobDescription"
-          fullWidth
-          required
-          value={form.jobDescription}
-          onChange={handleChange}
-          multiline
-          rows={4}
-          sx={{
-            "& .MuiInputBase-root": {
-              alignItems: "flex-start",
-            },
-          }}
-        />
-      </Grid>
-    </Grid>
-
-    {/* Buttons */}
-    <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
-      <Button onClick={handleClose} variant="outlined" color="error">
-        Cancel
-      </Button>
-      <Button onClick={handleSubmit} variant="contained" color="primary">
-        Submit
-      </Button>
-    </Box>
-  </Box>
-</Modal>
-
-
+        {/* Buttons */}
+        <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
+          <Button onClick={handleClose} variant="outlined" color="error">
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} variant="contained" color="primary">
+            Submit
+          </Button>
+        </Box>
+      </Box>
+    </Modal>
   );
 }

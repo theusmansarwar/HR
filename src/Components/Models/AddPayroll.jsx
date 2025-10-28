@@ -26,7 +26,6 @@ const style = {
 
 const paymentMethods = ["Cash", "Bank Transfer", "Cheque"];
 const statuses = ["Paid", "Pending", "Unpaid"];
-const archiveOptions = ["Yes", "No"];
 
 export default function AddPayroll({
   open,
@@ -49,18 +48,18 @@ export default function AddPayroll({
     paymentMethod: "Cash",
     paymentDate: new Date().toISOString().split("T")[0],
     status: "Pending",
-    isArchived: "No",
   });
 
   const [employees, setEmployees] = React.useState([]);
+  const [errors, setErrors] = React.useState({});
   const [id, setId] = React.useState("");
 
-  // ✅ Fetch Employees once
+  // ✅ Fetch employees
   React.useEffect(() => {
     const loadEmployees = async () => {
       try {
-        const res = await fetchEmployees();
-        setEmployees(res?.data || []);
+        const empRes = await fetchEmployees();
+        setEmployees(empRes?.data || []);
       } catch (error) {
         console.error("Error fetching employees:", error);
       }
@@ -68,7 +67,7 @@ export default function AddPayroll({
     loadEmployees();
   }, []);
 
-  // ✅ Pre-fill on Update
+  // ✅ Prefill data on edit
   React.useEffect(() => {
     if (Modeldata) {
       setForm({
@@ -86,11 +85,10 @@ export default function AddPayroll({
           ? Modeldata.paymentDate.split("T")[0]
           : new Date().toISOString().split("T")[0],
         status: Modeldata?.status || "Pending",
-        isArchived: Modeldata?.isArchived || "No",
       });
       setId(Modeldata?._id || "");
+      setErrors({});
     } else {
-      // reset for Add
       setForm({
         employeeId: "",
         month: "",
@@ -104,21 +102,30 @@ export default function AddPayroll({
         paymentMethod: "Cash",
         paymentDate: new Date().toISOString().split("T")[0],
         status: "Pending",
-        isArchived: "No",
       });
       setId("");
+      setErrors({});
     }
   }, [Modeldata]);
 
-  const handleClose = () => setOpen(false);
+  // ✅ Close modal & reset
+  const handleClose = () => {
+    setErrors({});
+    setOpen(false);
+  };
 
+  // ✅ Handle change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
+  // ✅ Handle submit
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrors({});
+
     try {
       let response;
       if (Modeltype === "Add") {
@@ -127,25 +134,35 @@ export default function AddPayroll({
         response = await updatePayroll(id, form);
       }
 
-      if (response?.data) {
+      if (response.status === 200 || response.status === 201) {
         onSave(response.data);
         onResponse({
           messageType: "success",
-          message: response.message || "Payroll saved successfully",
+          message: response.message || "Payroll saved successfully ✅",
+        });
+        setOpen(false);
+      } else if (response.status === 400 && response.missingFields) {
+        // 🟥 Show backend validation errors
+        const fieldErrors = {};
+        response.missingFields.forEach((f) => {
+          fieldErrors[f.name] = f.message;
+        });
+        setErrors(fieldErrors);
+        onResponse({
+          messageType: "error",
+          message: response.message || "Validation failed ⚠️",
         });
       } else {
         onResponse({
           messageType: "error",
-          message: "Something went wrong while saving payroll",
+          message: response.message || "Something went wrong ❌",
         });
       }
-
-      setOpen(false);
     } catch (error) {
       console.error("Error saving payroll:", error);
       onResponse({
         messageType: "error",
-        message: "Error saving payroll",
+        message: "Internal Server Error ❌",
       });
     }
   };
@@ -181,6 +198,8 @@ export default function AddPayroll({
               required
               value={form.employeeId}
               onChange={handleChange}
+              error={!!errors.employeeId}
+              helperText={errors.employeeId}
             >
               <MenuItem value="">Select Employee</MenuItem>
               {employees.map((emp) => (
@@ -199,7 +218,8 @@ export default function AddPayroll({
               required
               value={form.month}
               onChange={handleChange}
-              placeholder="e.g. October"
+              error={!!errors.month}
+              helperText={errors.month}
             />
           </Grid>
 
@@ -212,6 +232,8 @@ export default function AddPayroll({
               required
               value={form.year}
               onChange={handleChange}
+              error={!!errors.year}
+              helperText={errors.year}
             />
           </Grid>
 
@@ -224,6 +246,8 @@ export default function AddPayroll({
               required
               value={form.basicSalary}
               onChange={handleChange}
+              error={!!errors.basicSalary}
+              helperText={errors.basicSalary}
             />
           </Grid>
 
@@ -235,6 +259,8 @@ export default function AddPayroll({
               fullWidth
               value={form.allowances}
               onChange={handleChange}
+              error={!!errors.allowances}
+              helperText={errors.allowances}
             />
           </Grid>
 
@@ -246,6 +272,8 @@ export default function AddPayroll({
               fullWidth
               value={form.bonuses}
               onChange={handleChange}
+              error={!!errors.bonuses}
+              helperText={errors.bonuses}
             />
           </Grid>
 
@@ -257,6 +285,8 @@ export default function AddPayroll({
               fullWidth
               value={form.deductions}
               onChange={handleChange}
+              error={!!errors.deductions}
+              helperText={errors.deductions}
             />
           </Grid>
 
@@ -268,6 +298,8 @@ export default function AddPayroll({
               fullWidth
               value={form.overtime}
               onChange={handleChange}
+              error={!!errors.overtime}
+              helperText={errors.overtime}
             />
           </Grid>
 
@@ -280,6 +312,8 @@ export default function AddPayroll({
               required
               value={form.netSalary}
               onChange={handleChange}
+              error={!!errors.netSalary}
+              helperText={errors.netSalary}
             />
           </Grid>
 
@@ -291,6 +325,8 @@ export default function AddPayroll({
               fullWidth
               value={form.paymentMethod}
               onChange={handleChange}
+              error={!!errors.paymentMethod}
+              helperText={errors.paymentMethod}
             >
               {paymentMethods.map((method) => (
                 <MenuItem key={method} value={method}>
@@ -328,7 +364,6 @@ export default function AddPayroll({
               ))}
             </TextField>
           </Grid>
-          
         </Grid>
 
         <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>

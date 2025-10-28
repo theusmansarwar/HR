@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, Typography, TextField, MenuItem, Grid, Modal } from "@mui/material";
+import {
+  Box,
+  Button,
+  Typography,
+  TextField,
+  MenuItem,
+  Grid,
+  Modal,
+} from "@mui/material";
 import { createLeaves } from "../../DAL/create";
 import { updateLeave } from "../../DAL/edit";
 import { fetchEmployees } from "../../DAL/fetch";
@@ -19,7 +27,14 @@ const style = {
   borderRadius: "12px",
 };
 
-export default function AddLeaves({ open, setOpen, Modeltype, Modeldata, onSave, onResponse }) {
+export default function AddLeaves({
+  open,
+  setOpen,
+  Modeltype,
+  Modeldata,
+  onSave,
+  onResponse,
+}) {
   const [form, setForm] = useState({
     employeeId: "",
     leaveType: "",
@@ -29,6 +44,8 @@ export default function AddLeaves({ open, setOpen, Modeltype, Modeldata, onSave,
     reason: "",
     attachmentLinks: [],
   });
+
+  const [errors, setErrors] = useState({});
   const [employees, setEmployees] = useState([]);
   const [id, setId] = useState("");
 
@@ -70,13 +87,21 @@ export default function AddLeaves({ open, setOpen, Modeltype, Modeldata, onSave,
     }
   }, [Modeldata]);
 
+  const handleClose = () => {
+    setErrors({});
+    setOpen(false);
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrors({});
+
     try {
       let response;
       if (Modeltype === "Add") {
@@ -85,28 +110,54 @@ export default function AddLeaves({ open, setOpen, Modeltype, Modeldata, onSave,
         response = await updateLeave(id, form);
       }
 
-      if (response?.data) {
+      if (response.status === 200 || response.status === 201) {
         onSave(response.data);
-        onResponse({ message: `${Modeltype} Leave successfully!` });
+        onResponse({
+          messageType: "success",
+          message: response.message || "Leave saved successfully",
+        });
         setOpen(false);
+      } else if (response.status === 400 && response.missingFields) {
+        // 🟥 Backend-driven field errors (same as fines)
+        const fieldErrors = {};
+        response.missingFields.forEach((f) => {
+          fieldErrors[f.name] = f.message;
+        });
+        setErrors(fieldErrors);
+        onResponse({
+          messageType: "error",
+          message: response.message || "Validation failed",
+        });
       } else {
-        onResponse({ message: "Failed to save leave" });
+        onResponse({
+          messageType: "error",
+          message: response.message || "Something went wrong",
+        });
       }
     } catch (err) {
-      console.error(err);
-      onResponse({ message: "Error saving leave" });
+      console.error("Error saving leave:", err);
+      onResponse({
+        messageType: "error",
+        message: "Internal Server Error",
+      });
     }
   };
 
   return (
-    <Modal open={open} onClose={() => setOpen(false)}>
+    <Modal open={open} onClose={handleClose}>
       <Box sx={style}>
         <Typography variant="h6" mb={2}>
           {Modeltype} Leave
         </Typography>
 
         {Modeldata && (
-          <TextField label="Leave ID" fullWidth disabled value={Modeldata.leaveId} sx={{ mb: 2 }} />
+          <TextField
+            label="Leave ID"
+            fullWidth
+            disabled
+            value={Modeldata.leaveId}
+            sx={{ mb: 2 }}
+          />
         )}
 
         <Grid container spacing={2}>
@@ -119,7 +170,10 @@ export default function AddLeaves({ open, setOpen, Modeltype, Modeldata, onSave,
               required
               value={form.employeeId}
               onChange={handleChange}
+              error={!!errors.employeeId}
+              helperText={errors.employeeId}
             >
+              <MenuItem value="">Select Employee</MenuItem>
               {employees.map((emp) => (
                 <MenuItem key={emp._id} value={emp._id}>
                   {emp.firstName} {emp.lastName} ({emp.email})
@@ -137,9 +191,14 @@ export default function AddLeaves({ open, setOpen, Modeltype, Modeldata, onSave,
               required
               value={form.leaveType}
               onChange={handleChange}
+              error={!!errors.leaveType}
+              helperText={errors.leaveType}
             >
+              <MenuItem value="">Select Type</MenuItem>
               {leaveTypes.map((type) => (
-                <MenuItem key={type} value={type}>{type}</MenuItem>
+                <MenuItem key={type} value={type}>
+                  {type}
+                </MenuItem>
               ))}
             </TextField>
           </Grid>
@@ -154,6 +213,8 @@ export default function AddLeaves({ open, setOpen, Modeltype, Modeldata, onSave,
               required
               value={form.startDate}
               onChange={handleChange}
+              error={!!errors.startDate}
+              helperText={errors.startDate}
             />
           </Grid>
 
@@ -167,6 +228,8 @@ export default function AddLeaves({ open, setOpen, Modeltype, Modeldata, onSave,
               required
               value={form.endDate}
               onChange={handleChange}
+              error={!!errors.endDate}
+              helperText={errors.endDate}
             />
           </Grid>
 
@@ -180,7 +243,9 @@ export default function AddLeaves({ open, setOpen, Modeltype, Modeldata, onSave,
               onChange={handleChange}
             >
               {leaveStatus.map((s) => (
-                <MenuItem key={s} value={s}>{s}</MenuItem>
+                <MenuItem key={s} value={s}>
+                  {s}
+                </MenuItem>
               ))}
             </TextField>
           </Grid>
@@ -192,13 +257,19 @@ export default function AddLeaves({ open, setOpen, Modeltype, Modeldata, onSave,
               fullWidth
               value={form.reason}
               onChange={handleChange}
+              error={!!errors.reason}
+              helperText={errors.reason}
             />
           </Grid>
         </Grid>
 
         <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
-          <Button onClick={() => setOpen(false)} variant="contained" color="error">Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained" color="primary">Submit</Button>
+          <Button onClick={handleClose} variant="contained" color="error">
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} variant="contained" color="primary">
+            Submit
+          </Button>
         </Box>
       </Box>
     </Modal>

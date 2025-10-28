@@ -25,9 +25,16 @@ const style = {
   borderRadius: "12px",
 };
 
-const statuses = ["Completed","Pending", "In Progress"];
+const statuses = ["Completed", "Pending", "In Progress"];
 
-export default function AddPerformance({ open, setOpen, Modeltype, Modeldata, onSave, onResponse }) {
+export default function AddPerformance({
+  open,
+  setOpen,
+  Modeltype,
+  Modeldata,
+  onSave,
+  onResponse,
+}) {
   const [form, setForm] = React.useState({
     employeeId: "",
     KPIs: "",
@@ -36,10 +43,12 @@ export default function AddPerformance({ open, setOpen, Modeltype, Modeldata, on
     remarks: "",
     status: "In Progress",
   });
+
   const [employees, setEmployees] = React.useState([]);
+  const [errors, setErrors] = React.useState({});
   const [id, setId] = React.useState("");
 
-  // Fetch employees for dropdown
+  // ✅ Fetch employees
   React.useEffect(() => {
     const loadEmployees = async () => {
       try {
@@ -52,19 +61,24 @@ export default function AddPerformance({ open, setOpen, Modeltype, Modeldata, on
     loadEmployees();
   }, []);
 
-  // Populate form only on Update
+  // ✅ Populate form only on Update
   React.useEffect(() => {
     if (Modeltype === "Update" && Modeldata) {
       setForm({
         employeeId: Modeldata?.employeeId?._id || Modeldata?.employeeId || "",
-        KPIs: Array.isArray(Modeldata?.KPIs) ? Modeldata.KPIs.join(", ") : Modeldata?.KPIs || "",
-        appraisalDate: Modeldata?.appraisalDate ? Modeldata.appraisalDate.split("T")[0] : "",
+        KPIs: Array.isArray(Modeldata?.KPIs)
+          ? Modeldata.KPIs.join(", ")
+          : Modeldata?.KPIs || "",
+        appraisalDate: Modeldata?.appraisalDate
+          ? Modeldata.appraisalDate.split("T")[0]
+          : "",
         score: Modeldata?.score || "",
         remarks: Modeldata?.remarks || "",
         status: Modeldata?.status || "In Progress",
       });
       setId(Modeldata?._id || "");
-    } else if (Modeltype === "Add") {
+      setErrors({});
+    } else {
       setForm({
         employeeId: "",
         KPIs: "",
@@ -74,18 +88,28 @@ export default function AddPerformance({ open, setOpen, Modeltype, Modeldata, on
         status: "In Progress",
       });
       setId("");
+      setErrors({});
     }
   }, [Modeltype, Modeldata]);
 
-  const handleClose = () => setOpen(false);
+  // ✅ Close modal
+  const handleClose = () => {
+    setErrors({});
+    setOpen(false);
+  };
 
+  // ✅ Handle change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
+  // ✅ Handle submit
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrors({});
+
     try {
       const payload = {
         ...form,
@@ -99,22 +123,36 @@ export default function AddPerformance({ open, setOpen, Modeltype, Modeldata, on
         response = await updatePerformance(id, payload);
       }
 
-      if (response?.data) {
+      if (response.status === 200 || response.status === 201) {
         onSave(response.data);
         onResponse({
           messageType: "success",
-          message: response.message || `${Modeltype} successful`,
+          message: response.message || "Performance saved successfully ✅",
         });
         setOpen(false);
+      } else if (response.status === 400 && response.missingFields) {
+        // 🟥 Backend validation errors
+        const fieldErrors = {};
+        response.missingFields.forEach((f) => {
+          fieldErrors[f.name] = f.message;
+        });
+        setErrors(fieldErrors);
+        onResponse({
+          messageType: "error",
+          message: response.message || "Validation failed ⚠️",
+        });
       } else {
         onResponse({
           messageType: "error",
-          message: response.message || "Something went wrong",
+          message: response.message || "Something went wrong ❌",
         });
       }
     } catch (error) {
       console.error("Error saving performance:", error);
-      onResponse({ messageType: "error", message: "Error saving performance" });
+      onResponse({
+        messageType: "error",
+        message: "Internal Server Error ❌",
+      });
     }
   };
 
@@ -128,7 +166,12 @@ export default function AddPerformance({ open, setOpen, Modeltype, Modeldata, on
         {Modeltype === "Update" && Modeldata?.performanceId && (
           <Grid container spacing={2} mb={2}>
             <Grid item xs={6}>
-              <TextField label="Performance ID" value={Modeldata.performanceId} fullWidth disabled />
+              <TextField
+                label="Performance ID"
+                value={Modeldata.performanceId}
+                fullWidth
+                disabled
+              />
             </Grid>
           </Grid>
         )}
@@ -144,6 +187,8 @@ export default function AddPerformance({ open, setOpen, Modeltype, Modeldata, on
               required
               value={form.employeeId}
               onChange={handleChange}
+              error={!!errors.employeeId}
+              helperText={errors.employeeId}
             >
               <MenuItem value="">Select Employee</MenuItem>
               {employees.map((emp) => (
@@ -163,6 +208,8 @@ export default function AddPerformance({ open, setOpen, Modeltype, Modeldata, on
               required
               value={form.KPIs}
               onChange={handleChange}
+              error={!!errors.KPIs}
+              helperText={errors.KPIs}
             />
           </Grid>
 
@@ -177,6 +224,8 @@ export default function AddPerformance({ open, setOpen, Modeltype, Modeldata, on
               required
               value={form.appraisalDate}
               onChange={handleChange}
+              error={!!errors.appraisalDate}
+              helperText={errors.appraisalDate}
             />
           </Grid>
 
@@ -190,6 +239,8 @@ export default function AddPerformance({ open, setOpen, Modeltype, Modeldata, on
               required
               value={form.score}
               onChange={handleChange}
+              error={!!errors.score}
+              helperText={errors.score}
             />
           </Grid>
 
@@ -203,6 +254,8 @@ export default function AddPerformance({ open, setOpen, Modeltype, Modeldata, on
               rows={3}
               value={form.remarks}
               onChange={handleChange}
+              error={!!errors.remarks}
+              helperText={errors.remarks}
             />
           </Grid>
 
@@ -215,6 +268,8 @@ export default function AddPerformance({ open, setOpen, Modeltype, Modeldata, on
               fullWidth
               value={form.status}
               onChange={handleChange}
+              error={!!errors.status}
+              helperText={errors.status}
             >
               {statuses.map((status) => (
                 <MenuItem key={status} value={status}>

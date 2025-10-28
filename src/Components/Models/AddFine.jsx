@@ -7,10 +7,11 @@ import {
   TextField,
   MenuItem,
   Grid,
+  FormHelperText,
 } from "@mui/material";
 import { createFines } from "../../DAL/create";
 import { updateFines } from "../../DAL/edit";
-import { fetchEmployees } from "../../DAL/fetch"; 
+import { fetchEmployees } from "../../DAL/fetch";
 
 const style = {
   position: "absolute",
@@ -43,6 +44,7 @@ export default function AddFine({
     status: "Unpaid",
   });
 
+  const [errors, setErrors] = React.useState({});
   const [employees, setEmployees] = React.useState([]);
   const [id, setId] = React.useState("");
 
@@ -58,16 +60,13 @@ export default function AddFine({
     loadEmployees();
   }, []);
 
-
   React.useEffect(() => {
     if (Modeldata) {
       setForm({
         employeeId: Modeldata?.employeeId?._id || "",
         fineType: Modeldata?.fineType || "",
         fineAmount: Modeldata?.fineAmount || "",
-        fineDate: Modeldata?.fineDate
-          ? Modeldata.fineDate.split("T")[0]
-          : "",
+        fineDate: Modeldata?.fineDate ? Modeldata.fineDate.split("T")[0] : "",
         description: Modeldata?.description || "",
         status: Modeldata?.status || "Unpaid",
       });
@@ -85,44 +84,62 @@ export default function AddFine({
     }
   }, [Modeldata]);
 
-  const handleClose = () => setOpen(false);
+  const handleClose = () => {
+    setErrors({});
+    setOpen(false);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrors({});
+
     try {
       const payload = { ...form };
-
       let response;
+
       if (Modeltype === "Add") {
         response = await createFines(payload);
       } else {
         response = await updateFines(id, payload);
       }
 
-      if (response?.data) {
+      if (response.status === 200 || response.status === 201) {
         onSave(response.data);
         onResponse({
           messageType: "success",
           message: response.message || "Fine saved successfully",
         });
-      } else {
+        setOpen(false);
+      } 
+      else if (response.status === 400 && response.missingFields) {
+         
+        const fieldErrors = {};
+        response.missingFields.forEach((f) => {
+          fieldErrors[f.name] = f.message;
+        });
+        setErrors(fieldErrors);
+        onResponse({
+          messageType: "error",
+          message: response.message || "Validation failed",
+        });
+      } 
+      else {
         onResponse({
           messageType: "error",
           message: response.message || "Something went wrong",
         });
       }
-
-      setOpen(false);
     } catch (error) {
       console.error("Error saving fine:", error);
       onResponse({
         messageType: "error",
-        message: "Error saving fine",
+        message: "Internal Server Error",
       });
     }
   };
@@ -148,16 +165,16 @@ export default function AddFine({
         )}
 
         <Grid container spacing={2}>
-          {/* Employee Dropdown */}
           <Grid item xs={6}>
             <TextField
               select
               label="Select Employee"
               name="employeeId"
               fullWidth
-              required
               value={form.employeeId}
               onChange={handleChange}
+              error={!!errors.employeeId}
+              helperText={errors.employeeId}
             >
               <MenuItem value="">Select Employee</MenuItem>
               {employees.map((emp) => (
@@ -173,9 +190,10 @@ export default function AddFine({
               label="Fine Type"
               name="fineType"
               fullWidth
-              required
               value={form.fineType}
               onChange={handleChange}
+              error={!!errors.fineType}
+              helperText={errors.fineType}
             />
           </Grid>
 
@@ -185,9 +203,10 @@ export default function AddFine({
               name="fineAmount"
               type="number"
               fullWidth
-              required
               value={form.fineAmount}
               onChange={handleChange}
+              error={!!errors.fineAmount}
+              helperText={errors.fineAmount}
             />
           </Grid>
 
@@ -198,9 +217,10 @@ export default function AddFine({
               name="fineDate"
               InputLabelProps={{ shrink: true }}
               fullWidth
-              required
               value={form.fineDate}
               onChange={handleChange}
+              error={!!errors.fineDate}
+              helperText={errors.fineDate}
             />
           </Grid>
 
@@ -213,6 +233,8 @@ export default function AddFine({
               rows={2}
               value={form.description}
               onChange={handleChange}
+              error={!!errors.description}
+              helperText={errors.description}
             />
           </Grid>
 
