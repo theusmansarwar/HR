@@ -67,61 +67,57 @@ export default function AddEmployee({
   const [id, setId] = React.useState("");
   const [profileImage, setProfileImage] = React.useState(null);
   const [imagePreview, setImagePreview] = React.useState(null);
+  const [errors, setErrors] = React.useState({});
 
+  // ✅ Fetch dropdowns and prefill form if editing
   React.useEffect(() => {
-    const loadDropdownData = async () => {
+    const loadData = async () => {
       try {
         const depRes = await fetchDepartments();
         const desRes = await fetchDesignations();
         setDepartments(depRes?.data || []);
         setDesignations(desRes?.data || []);
+
+        if (Modeldata) {
+          setForm({
+            firstName: Modeldata?.firstName || "",
+            lastName: Modeldata?.lastName || "",
+            email: Modeldata?.email || "",
+            phoneNumber: Modeldata?.phoneNumber || "",
+            dateOfBirth: Modeldata?.dateOfBirth
+              ? Modeldata.dateOfBirth.split("T")[0]
+              : "",
+            gender: Modeldata?.gender || "",
+            cnic: Modeldata?.cnic || "",
+            departmentId:
+              Modeldata?.departmentId?._id || Modeldata?.departmentId || "",
+            designationId:
+              Modeldata?.designationId?._id || Modeldata?.designationId || "",
+            employeementType: Modeldata?.employeementType || "",
+            status: Modeldata?.status || "Active",
+            salary: Modeldata?.salary || "",
+            bankAccountNo: Modeldata?.bankAccountNo || "",
+            address: Modeldata?.address || "",
+            emergencyContactName: Modeldata?.emergencyContactName || "",
+            emergencyContactNo: Modeldata?.emergencyContactNo || "",
+            isArchived: Modeldata?.isArchived || false,
+          });
+          setId(Modeldata?._id || "");
+          if (Modeldata?.profileImage) setImagePreview(Modeldata.profileImage);
+        }
       } catch (error) {
-        console.error("Error fetching dropdowns:", error);
+        console.error("Error fetching dropdown data:", error);
       }
     };
-    loadDropdownData();
-  }, []);
-
-  React.useEffect(() => {
-    if (Modeldata) {
-      setForm({
-        firstName: Modeldata?.firstName || "",
-        lastName: Modeldata?.lastName || "",
-        email: Modeldata?.email || "",
-        phoneNumber: Modeldata?.phoneNumber || "",
-        dateOfBirth: Modeldata?.dateOfBirth ? Modeldata.dateOfBirth.split("T")[0] : "",
-        gender: Modeldata?.gender || "",
-        cnic: Modeldata?.cnic || "",
-        departmentId: Modeldata?.departmentId?._id || Modeldata?.departmentId || "",
-        designationId: Modeldata?.designationId?._id || Modeldata?.designationId || "",
- 
-        employeementType: Modeldata?.employeementType || "",
-        status: Modeldata?.status || "Active",
-        salary: Modeldata?.salary || "",
-        bankAccountNo: Modeldata?.bankAccountNo || "",
-        address: Modeldata?.address || "",
-        emergencyContactName: Modeldata?.emergencyContactName || "",
-        emergencyContactNo: Modeldata?.emergencyContactNo || "",
-        isArchived: Modeldata?.isArchived || false,
-      });
-      setId(Modeldata?._id || "");
-      if (Modeldata?.profileImage) setImagePreview(Modeldata.profileImage);
-    } else {
-      setForm((prev) => ({
-        ...Object.fromEntries(Object.keys(prev).map((key) => [key, ""])),
-        status: "Active",
-        isArchived: false,
-      }));
-      setId("");
-      setProfileImage(null);
-      setImagePreview(null);
-    }
+    loadData();
   }, [Modeldata]);
 
   const handleClose = () => setOpen(false);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" })); // clear field error on change
   };
 
   const handleProfileImageChange = (e) => {
@@ -132,13 +128,12 @@ export default function AddEmployee({
     }
   };
 
+  // ✅ Handle backend-driven validation
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const formData = new FormData();
-      Object.keys(form).forEach((key) => {
-        formData.append(key, form[key]);
-      });
+      Object.keys(form).forEach((key) => formData.append(key, form[key]));
       if (profileImage) formData.append("profileImage", profileImage);
 
       let response;
@@ -148,22 +143,42 @@ export default function AddEmployee({
         response = await updateEmployee(id, formData, true);
       }
 
+      const missingFields =
+        response?.data?.missingFields || response?.missingFields;
+      if (missingFields && missingFields.length > 0) {
+        const backendErrors = {};
+        missingFields.forEach((f) => {
+          backendErrors[f.name] = f.message;
+        });
+        setErrors(backendErrors);
+        return;
+      }
+
       if (response?.status === 201 || response?.status === 200) {
         onSave(response.data);
         onResponse({
           messageType: "success",
           message: response.message || "Employee saved successfully",
         });
+        setOpen(false);
       } else {
         onResponse({
           messageType: "error",
           message: response.message || "Something went wrong",
         });
       }
+    } catch (err) {
+      const missingFields = err.response?.data?.missingFields;
+      if (missingFields && missingFields.length > 0) {
+        const backendErrors = {};
+        missingFields.forEach((f) => {
+          backendErrors[f.name] = f.message;
+        });
+        setErrors(backendErrors);
+        return;
+      }
 
-      setOpen(false);
-    } catch (error) {
-      console.error("Error saving employee:", error);
+      console.error("Error saving employee:", err);
       onResponse({
         messageType: "error",
         message: "Error saving employee",
@@ -196,7 +211,6 @@ export default function AddEmployee({
             flex: 1,
             overflowY: "scroll",
             scrollbarWidth: "none",
-            msOverflowStyle: "none",
             "&::-webkit-scrollbar": { display: "none" },
             p: 3,
           }}
@@ -212,86 +226,237 @@ export default function AddEmployee({
                 />
                 <Button variant="outlined" component="label">
                   Upload Profile Image
-                  <input type="file" hidden accept="image/*" onChange={handleProfileImageChange} />
+                  <input
+                    type="file"
+                    hidden
+                    accept="image/*"
+                    onChange={handleProfileImageChange}
+                  />
                 </Button>
               </Box>
             </Grid>
 
-            {/* Basic Info */}
+            {/* BASIC INFO */}
             <Grid item xs={6}>
-              <TextField label="First Name" name="firstName" fullWidth required value={form.firstName} onChange={handleChange} />
+              <TextField
+                label="First Name"
+                name="firstName"
+                fullWidth
+                required
+                value={form.firstName}
+                onChange={handleChange}
+                error={!!errors.firstName}
+                helperText={errors.firstName}
+              />
             </Grid>
             <Grid item xs={6}>
-              <TextField label="Last Name" name="lastName" fullWidth required value={form.lastName} onChange={handleChange} />
+              <TextField
+                label="Last Name"
+                name="lastName"
+                fullWidth
+                value={form.lastName}
+                onChange={handleChange}
+                error={!!errors.lastName}
+                helperText={errors.lastName}
+              />
             </Grid>
             <Grid item xs={6}>
-              <TextField label="Email" name="email" type="email" fullWidth required value={form.email} onChange={handleChange} />
+              <TextField
+                label="Email"
+                name="email"
+                type="email"
+                fullWidth
+                value={form.email}
+                onChange={handleChange}
+                error={!!errors.email}
+                helperText={errors.email}
+              />
             </Grid>
             <Grid item xs={6}>
-              <TextField label="Phone Number" name="phoneNumber" fullWidth required value={form.phoneNumber} onChange={handleChange} />
+              <TextField
+                label="Phone Number"
+                name="phoneNumber"
+                fullWidth
+                value={form.phoneNumber}
+                onChange={handleChange}
+                error={!!errors.phoneNumber}
+                helperText={errors.phoneNumber}
+              />
             </Grid>
             <Grid item xs={6}>
-              <TextField type="date" label="Date of Birth" name="dateOfBirth" InputLabelProps={{ shrink: true }} fullWidth required value={form.dateOfBirth} onChange={handleChange} />
+              <TextField
+                type="date"
+                label="Date of Birth"
+                name="dateOfBirth"
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+                value={form.dateOfBirth}
+                onChange={handleChange}
+                error={!!errors.dateOfBirth}
+                helperText={errors.dateOfBirth}
+              />
             </Grid>
             <Grid item xs={6}>
-              <TextField select label="Gender" name="gender" fullWidth required value={form.gender} onChange={handleChange}>
+              <TextField
+                select
+                label="Gender"
+                name="gender"
+                fullWidth
+                value={form.gender}
+                onChange={handleChange}
+                error={!!errors.gender}
+                helperText={errors.gender}
+              >
                 {genderOptions.map((g) => (
-                  <MenuItem key={g} value={g}>{g}</MenuItem>
+                  <MenuItem key={g} value={g}>
+                    {g}
+                  </MenuItem>
                 ))}
               </TextField>
             </Grid>
             <Grid item xs={6}>
-              <TextField label="CNIC" name="cnic" fullWidth required value={form.cnic} onChange={handleChange} />
+              <TextField
+                label="CNIC"
+                name="cnic"
+                fullWidth
+                value={form.cnic}
+                onChange={handleChange}
+                error={!!errors.cnic}
+                helperText={errors.cnic}
+              />
             </Grid>
 
-            {/* Job Info */}
+            {/* JOB INFO */}
             <Grid item xs={6}>
-              <TextField select label="Department" name="departmentId" fullWidth required value={form.departmentId} onChange={handleChange}>
+              <TextField
+                select
+                label="Department"
+                name="departmentId"
+                fullWidth
+                value={form.departmentId}
+                onChange={handleChange}
+                error={!!errors.departmentId}
+                helperText={errors.departmentId}
+              >
                 <MenuItem value="">Select Department</MenuItem>
                 {departments.map((dep) => (
-                  <MenuItem key={dep._id} value={dep._id}>{dep.departmentName}</MenuItem>
+                  <MenuItem key={dep._id} value={dep._id}>
+                    {dep.departmentName}
+                  </MenuItem>
                 ))}
               </TextField>
             </Grid>
             <Grid item xs={6}>
-              <TextField select label="Designation" name="designationId" fullWidth required value={form.designationId} onChange={handleChange}>
+              <TextField
+                select
+                label="Designation"
+                name="designationId"
+                fullWidth
+                value={form.designationId}
+                onChange={handleChange}
+                error={!!errors.designationId}
+                helperText={errors.designationId}
+              >
                 <MenuItem value="">Select Designation</MenuItem>
                 {designations.map((des) => (
-                  <MenuItem key={des._id} value={des._id}>{des.designationName}</MenuItem>
+                  <MenuItem key={des._id} value={des._id}>
+                    {des.designationName}
+                  </MenuItem>
                 ))}
               </TextField>
             </Grid>
-            {/* <Grid item xs={6}>
-              <TextField type="date" label="Joining Date" name="dateOfJoining" InputLabelProps={{ shrink: true }} fullWidth required value={form.dateOfJoining} onChange={handleChange} />
-            </Grid> */}
+
             <Grid item xs={6}>
-              <TextField select label="Employment Type" name="employeementType" fullWidth required value={form.employeementType} onChange={handleChange}>
+              <TextField
+                select
+                label="Employment Type"
+                name="employeementType"
+                fullWidth
+                value={form.employeementType}
+                onChange={handleChange}
+                error={!!errors.employeementType}
+                helperText={errors.employeementType}
+              >
                 {employmentTypes.map((type) => (
-                  <MenuItem key={type} value={type}>{type}</MenuItem>
+                  <MenuItem key={type} value={type}>
+                    {type}
+                  </MenuItem>
                 ))}
               </TextField>
             </Grid>
+
             <Grid item xs={6}>
-              <TextField select label="Status" name="status" fullWidth required value={form.status} onChange={handleChange}>
+              <TextField
+                select
+                label="Status"
+                name="status"
+                fullWidth
+                value={form.status}
+                onChange={handleChange}
+              >
                 {statusOptions.map((s) => (
-                  <MenuItem key={s} value={s}>{s}</MenuItem>
+                  <MenuItem key={s} value={s}>
+                    {s}
+                  </MenuItem>
                 ))}
               </TextField>
             </Grid>
+
             <Grid item xs={6}>
-              <TextField label="Salary" name="salary" type="number" fullWidth required value={form.salary} onChange={handleChange} />
+              <TextField
+                label="Salary"
+                name="salary"
+                type="number"
+                fullWidth
+                value={form.salary}
+                onChange={handleChange}
+                error={!!errors.salary}
+                helperText={errors.salary}
+              />
             </Grid>
             <Grid item xs={6}>
-              <TextField label="Bank Account No" name="bankAccountNo" fullWidth required value={form.bankAccountNo} onChange={handleChange} />
+              <TextField
+                label="Bank Account No"
+                name="bankAccountNo"
+                fullWidth
+                value={form.bankAccountNo}
+                onChange={handleChange}
+                error={!!errors.bankAccountNo}
+                helperText={errors.bankAccountNo}
+              />
             </Grid>
+
             <Grid item xs={12}>
-              <TextField label="Address" name="address" fullWidth required multiline rows={2} value={form.address} onChange={handleChange} />
+              <TextField
+                label="Address"
+                name="address"
+                fullWidth
+                multiline
+                rows={2}
+                value={form.address}
+                onChange={handleChange}
+                error={!!errors.address}
+                helperText={errors.address}
+              />
+            </Grid>
+
+            <Grid item xs={6}>
+              <TextField
+                label="Emergency Contact Name"
+                name="emergencyContactName"
+                fullWidth
+                value={form.emergencyContactName}
+                onChange={handleChange}
+              />
             </Grid>
             <Grid item xs={6}>
-              <TextField label="Emergency Contact Name" name="emergencyContactName" fullWidth value={form.emergencyContactName} onChange={handleChange} />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField label="Emergency Contact No" name="emergencyContactNo" fullWidth value={form.emergencyContactNo} onChange={handleChange} />
+              <TextField
+                label="Emergency Contact No"
+                name="emergencyContactNo"
+                fullWidth
+                value={form.emergencyContactNo}
+                onChange={handleChange}
+              />
             </Grid>
           </Grid>
         </Box>
@@ -301,19 +466,20 @@ export default function AddEmployee({
         <Box
           sx={{
             p: 2,
-            borderTop: "1px solid #ddd",
             display: "flex",
             justifyContent: "flex-end",
             gap: 2,
-            position: "sticky",
-            bottom: 0,
             bgcolor: "background.paper",
           }}
         >
           <Button onClick={handleClose} variant="outlined" color="error">
             Cancel
           </Button>
-          <Button onClick={handleSubmit} variant="contained" sx={{ backgroundColor: "darkBlue" }}>
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            sx={{ backgroundColor: "darkBlue" }}
+          >
             {Modeltype === "Add" ? "Submit" : "Update"}
           </Button>
         </Box>

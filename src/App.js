@@ -40,6 +40,7 @@ import Fines from "./Pages/Categories/Fine";
 import Reports from "./Pages/Categories/Reports";
 import Users from "./Pages/Categories/Users";
 import Roles from "./Pages/Categories/Roles";
+import { IoIosArrowForward } from "react-icons/io";
 
 const allMenuItems = [
   { id: 1, name: "Dashboard", route: "/dashboard", icon: <MdDashboard /> },
@@ -50,7 +51,7 @@ const allMenuItems = [
   { id: 6, name: "Employees", route: "/employees", icon: <FaUsers /> },
   {
     id: 7,
-    name: "Attendance & Leaves",
+    name: "Presence",
     icon: <FaCalendarCheck />,
     children: [
       { id: 71, name: "Attendance", route: "/attendance", icon: <FaCalendarCheck /> },
@@ -175,7 +176,7 @@ const handleItemClick = (item) => {
           {filteredMenu.map((item) => (
             <li key={item.id}>
               <Tooltip title={!isOpen ? item.name : ""} placement="right" arrow>
-                <div
+                {/* <div
                   className={`menu-item ${
                     activeItem === item.name ? "selected-item" : "unselected"
                   }`}
@@ -183,7 +184,22 @@ const handleItemClick = (item) => {
                 >
                   {item.icon}
                   {isOpen && <span>{item.name}</span>}
-                </div>
+                </div> */}
+                <div
+  className={`menu-item ${activeItem === item.name ? "selected-item" : "unselected"}`}
+  onClick={() => handleItemClick(item)}
+>
+  {item.icon}
+  {isOpen && <span className="menu-item-name">{item.name}</span>}
+  {isOpen && item.children && (
+    <IoIosArrowForward
+      className={`menu-item-arrow ${
+        openSubmenu === item.name ? "arrow-open" : ""
+      }`}
+    />
+  )}
+</div>
+
               </Tooltip>
 
               {item.children && openSubmenu === item.name && (

@@ -50,19 +50,32 @@ export default function AddDesignation({
   const [errors, setErrors] = React.useState({});
 
   // Fetch Departments
-  React.useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const depRes = await fetchDepartments();
-        if (depRes?.data) setDepartments(depRes.data);
-      } catch (err) {
-        console.error("Error fetching departments:", err);
+  // ✅ Fetch departments first, then prefill form
+React.useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const depRes = await fetchDepartments();
+      if (depRes?.data) {
+        setDepartments(depRes.data);
       }
-    };
-    fetchData();
-  }, []);
 
-  // Pre-fill when Editing
+      if (Modeldata) {
+        setForm({
+          designationId: Modeldata?.designationId || "",
+          designationName: Modeldata?.designationName || "",
+          departmentId: Modeldata?.departmentId?._id || Modeldata?.departmentId || "", 
+          archive: Modeldata?.archive || false,
+          status: Modeldata?.status || "Active",
+        });
+        setId(Modeldata?._id || "");
+      }
+    } catch (err) {
+      console.error("Error fetching departments:", err);
+    }
+  };
+  fetchData();
+}, [Modeldata]);
+
   React.useEffect(() => {
     if (Modeldata) {
       setForm({
@@ -128,65 +141,60 @@ export default function AddDesignation({
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;
+  e.preventDefault();
 
-    try {
-      let response;
-      if (Modeltype === "Add") {
-        response = await createDesignation(form);
-      } else {
-        response = await updateDesignation(id, form);
-      }
+  try {
+    let response;
+    if (Modeltype === "Add") {
+      response = await createDesignation(form);
+    } else {
+      response = await updateDesignation(id, form);
+    }
 
-      // ✅ Handle missing fields from backend (like Testimonials)
-      if (response?.data?.missingFields || response?.missingFields) {
-        const missingFields =
-          response.data?.missingFields || response.missingFields;
-        const backendErrors = {};
-        missingFields.forEach((field) => {
-          backendErrors[field] = `${field
-            .replace(/([A-Z])/g, " $1")
-            .replace(/^./, (str) => str.toUpperCase())} is required`;
-        });
-        setErrors(backendErrors);
-        return;
-      }
+    // ✅ Handle backend validation array
+    const missingFields =
+      response?.data?.missingFields || response?.missingFields;
+    if (missingFields && missingFields.length > 0) {
+      const backendErrors = {};
+      missingFields.forEach((field) => {
+        backendErrors[field.name] = field.message;
+      });
+      setErrors(backendErrors);
+      return;
+    }
 
-      if (response?.data) {
-        onSave(response.data);
-        onResponse({
-          messageType: "success",
-          message: response.message || "Designation saved successfully",
-        });
-        setOpen(false);
-      } else {
-        onResponse({
-          messageType: "error",
-          message: response.message || "Something went wrong",
-        });
-      }
-    } catch (err) {
-      // ✅ Catch backend missingFields from error response
-      if (err.response?.data?.missingFields) {
-        const missingFields = err.response.data.missingFields;
-        const backendErrors = {};
-        missingFields.forEach((field) => {
-          backendErrors[field] = `${field
-            .replace(/([A-Z])/g, " $1")
-            .replace(/^./, (str) => str.toUpperCase())} is required`;
-        });
-        setErrors(backendErrors);
-        return;
-      }
-
-      console.error("Error saving designation:", err);
+    if (response?.data) {
+      onSave(response.data);
+      onResponse({
+        messageType: "success",
+        message: response.data?.message || "Designation saved successfully",
+      });
+      setOpen(false);
+    } else {
       onResponse({
         messageType: "error",
-        message: "Error saving designation",
+        message: response.message || "Something went wrong",
       });
     }
-  };
+  } catch (err) {
+    // ✅ Catch backend errors
+    const missingFields = err.response?.data?.missingFields;
+    if (missingFields && missingFields.length > 0) {
+      const backendErrors = {};
+      missingFields.forEach((field) => {
+        backendErrors[field.name] = field.message;
+      });
+      setErrors(backendErrors);
+      return;
+    }
+
+    console.error("Error saving designation:", err);
+    onResponse({
+      messageType: "error",
+      message: "Error saving designation",
+    });
+  }
+};
 
   return (
     <Modal open={open} onClose={handleClose}>

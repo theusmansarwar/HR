@@ -7,6 +7,7 @@ import {
   TextField,
   MenuItem,
   Grid,
+  FormHelperText,
 } from "@mui/material";
 import { createnewDepartment } from "../../DAL/create";
 import { updateDepartment } from "../../DAL/edit";
@@ -46,6 +47,7 @@ export default function AddDepartment({
   });
 
   const [id, setId] = React.useState("");
+  const [errors, setErrors] = React.useState({});
 
   React.useEffect(() => {
     if (Modeldata) {
@@ -53,7 +55,6 @@ export default function AddDepartment({
         departmentId: Modeldata?.departmentId || "",
         departmentName: Modeldata?.departmentName || "",
         headOfDepartment: Modeldata?.headOfDepartment || "",
-         
         isArchived: Modeldata?.isArchived || false,
         status: Modeldata?.status || "Active",
       });
@@ -68,6 +69,7 @@ export default function AddDepartment({
       });
       setId("");
     }
+    setErrors({});
   }, [Modeldata]);
 
   const handleClose = () => setOpen(false);
@@ -78,10 +80,13 @@ export default function AddDepartment({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+    setErrors((prev) => ({ ...prev, [name]: "" })); // clear error on change
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrors({});
+
     try {
       let response;
       if (Modeltype === "Add") {
@@ -90,25 +95,44 @@ export default function AddDepartment({
         response = await updateDepartment(id, form);
       }
 
-      if (response.status === 201 || response.status === 200) {
-        onResponse({
-          messageType: "success",
-          message: response.message || "Department saved successfully",
+      // ✅ Backend validation (400)
+      if (response?.status === 400 && response?.missingFields) {
+        const fieldErrors = {};
+        response.missingFields.forEach((f) => {
+          fieldErrors[f.name] = f.message;
         });
-      } else {
-        onResponse({
-          messageType: "error",
-          message: response.message || "Something went wrong",
-        });
+        setErrors(fieldErrors);
+
+        if (onResponse)
+          onResponse({
+            messageType: "error",
+            message: response.message || "Validation failed",
+          });
+        return;
       }
 
-      setOpen(false);
+      // ✅ Success response
+      if (response?.status === 200 || response?.status === 201) {
+        if (onResponse)
+          onResponse({
+            messageType: "success",
+            message: response.message || "Department saved successfully",
+          });
+        setOpen(false);
+      } else {
+        if (onResponse)
+          onResponse({
+            messageType: "error",
+            message: response.message || "Something went wrong",
+          });
+      }
     } catch (error) {
       console.error("Error saving department:", error);
-      onResponse({
-        messageType: "error",
-        message: "Error saving department",
-      });
+      if (onResponse)
+        onResponse({
+          messageType: "error",
+          message: "Internal Server Error",
+        });
     }
   };
 
@@ -142,6 +166,8 @@ export default function AddDepartment({
               required
               value={form.departmentName}
               onChange={handleChange}
+              error={!!errors.departmentName}
+              helperText={errors.departmentName}
             />
           </Grid>
 
@@ -153,32 +179,10 @@ export default function AddDepartment({
               required
               value={form.headOfDepartment}
               onChange={handleChange}
+              error={!!errors.headOfDepartment}
+              helperText={errors.headOfDepartment}
             />
           </Grid>
-
-          {/* <Grid item xs={6}>
-            <TextField
-              type="date"
-              label="Created Date"
-              name="createdDate"
-              InputLabelProps={{ shrink: true }}
-              fullWidth
-              value={form.createdDate}
-              onChange={handleChange}
-            />
-          </Grid>
-
-          <Grid item xs={6}>
-            <TextField
-              type="date"
-              label="Updated Date"
-              name="updatedDate"
-              InputLabelProps={{ shrink: true }}
-              fullWidth
-              value={form.updatedDate}
-              onChange={handleChange}
-            />
-          </Grid> */}
 
           <Grid
             item
@@ -214,7 +218,7 @@ export default function AddDepartment({
             </TextField>
           </Grid>
         </Grid>
-        
+
         <Box
           display="flex"
           justifyContent="flex-end"
