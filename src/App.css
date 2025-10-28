@@ -69,7 +69,7 @@ h6 {
 }
 .app-side-bar {
   width: 17%;
-  height: 100vh;
+  height: calc(100vh - 6vh); 
   margin: 3vh 1%;
   position: relative;
   gap: 30px;

@@ -62,33 +62,56 @@ export default function AddApplication({
     getJobs();
   }, []);
 
-  useEffect(() => {
-    if (modalType === "Add") {
-      setForm({
-        jobId: "",
-        applicantName: "",
-        applicantEmail: "",
-        applicantPhone: "",
-        resume: null,
-        applicationDate: "",
-        applicationStatus: "Pending",
-        interviewDate: "",
-        remarks: "",
-      });
-      setId("");
-      setErrors({});
-    } else if (modalType === "Update" && modalData) {
-      const { jobId, applicationDate, interviewDate, ...rest } = modalData;
-      setForm({
-        jobId: jobId?._id || jobId || "",
-        applicationDate: applicationDate ? applicationDate.split("T")[0] : "",
-        interviewDate: interviewDate ? interviewDate.split("T")[0] : "",
-        ...rest,
-      });
-      setId(modalData?._id || "");
-      setErrors({});
-    }
-  }, [modalType, modalData]);
+useEffect(() => {
+  if (modalType === "Add") {
+    setForm({
+      jobId: "",
+      applicantName: "",
+      applicantEmail: "",
+      applicantPhone: "",
+      resume: null,
+      applicationDate: "",
+      applicationStatus: "Pending",
+      interviewDate: "",
+      remarks: "",
+    });
+    setId("");
+    setErrors({});
+    return;
+  }
+
+  if (modalType === "Update" && modalData && jobs.length > 0) {
+    const normalizedJobId = modalData.jobId?._id
+      ? String(modalData.jobId._id)
+      : String(modalData.jobId || "");
+
+    const newForm = {
+      ...modalData,
+      jobId: normalizedJobId,
+      applicationDate: modalData.applicationDate
+        ? modalData.applicationDate.split("T")[0]
+        : "",
+      interviewDate: modalData.interviewDate
+        ? modalData.interviewDate.split("T")[0]
+        : "",
+    };
+
+    setForm(newForm);
+    setId(modalData._id || "");
+    setErrors({});
+  }
+}, [modalType, modalData, jobs]);
+; 
+
+// useEffect(() => {
+//   if (jobs.length > 0 && form.jobId) {
+//     const match = jobs.find((j) => j._id === form.jobId);
+//     if (!match) {
+//       const found = jobs.find((j) => j._id === (modalData?.jobId?._id || modalData?.jobId));
+//       if (found) setForm((prev) => ({ ...prev, jobId: found._id }));
+//     }
+//   }
+// }, [jobs]);
 
   const handleClose = () => setOpen(false);
 
@@ -147,10 +170,11 @@ export default function AddApplication({
               helperText={errors.jobId}
             >
               {jobs.map((job) => (
-                <MenuItem key={job._id} value={job._id}>
+                <MenuItem key={job._id} value={String(job._id)}>
                   {job.jobTitle}
-                </MenuItem>
-              ))}
+                  </MenuItem>
+                ))}
+
             </TextField>
           </Grid>
 

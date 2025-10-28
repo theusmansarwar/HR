@@ -24,7 +24,6 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
   const [allRoles, setAllRoles] = React.useState([]);
   const [id, setId] = React.useState("");
 
-  // ✅ Fetch roles when modal opens
   React.useEffect(() => {
     const fetchRoles = async () => {
       try {
@@ -37,34 +36,33 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
     if (open) fetchRoles();
   }, [open]);
 
-  // ✅ Autofill on edit
-  React.useEffect(() => {
-    if (modalType === "Edit" && modalData && Object.keys(modalData).length > 0) {
-      setForm({
-        name: modalData.name || "",
-        email: modalData.email || "",
-        password: "",
-        role: modalData.role || "",
-        status: modalData.status || "Active",
-      });
-      setId(modalData._id || "");
-    } else if (modalType === "Add") {
-      setForm({
-        name: "",
-        email: "",
-        password: "",
-        role: "",
-        status: "Active",
-      });
-      setId("");
-    }
-  }, [modalType, modalData]);
+ React.useEffect(() => {
+  if (modalType === "Edit" && modalData && allRoles.length > 0) {
+    setForm({
+      name: modalData.name || "",
+      email: modalData.email || "",
+      password: "",
+      role: allRoles.find(r => r.name === modalData.role)?.name || "",
+      status: modalData.status || "Active",
+    });
+    setId(modalData._id || "");
+  } else if (modalType === "Add") {
+    setForm({
+      name: "",
+      email: "",
+      password: "",
+      role: "",
+      status: "Active",
+    });
+    setId("");
+  }
+}, [modalType, modalData, allRoles]); 
 
-  // ✅ Handle field changes
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: "" })); // clear field error
+    setErrors((prev) => ({ ...prev, [name]: "" })); 
   };
 
   const handleClose = () => {
@@ -72,7 +70,6 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
     setOpen(false);
   };
 
-  // ✅ Backend-driven form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
@@ -89,9 +86,7 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
 
       console.log("Response:", response);
 
-      const resData = response?.data || response; // support both formats
-
-      // ✅ Success case
+      const resData = response?.data || response; 
       if (resData.status === 200 || resData.status === 201) {
         if (typeof onSave === "function") onSave(resData.data);
         if (typeof onResponse === "function") {
@@ -104,7 +99,6 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
         return;
       }
 
-      // ✅ Validation / Missing fields case
       if (resData.status === 400 && Array.isArray(resData.missingFields)) {
         const fieldErrors = {};
         resData.missingFields.forEach((f) => {
@@ -121,7 +115,6 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
         return;
       }
 
-      // ✅ Generic error case
       if (typeof onResponse === "function") {
         onResponse({
           messageType: "error",
@@ -131,7 +124,6 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
     } catch (error) {
       console.error("Error saving user:", error);
 
-      // ✅ Backend-driven error catch (still structured)
       const resData = error?.response?.data;
       if (resData?.missingFields) {
         const fieldErrors = {};
