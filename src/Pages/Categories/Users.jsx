@@ -7,15 +7,15 @@ const Users = ({ currentUser }) => {
   const [open, setOpen] = useState(false);
   const [modalType, setModalType] = useState("Add");
   const [modalData, setModalData] = useState(null);
+  const [response, setResponse] = useState(null);
 
-  // Attributes for table columns
   const attributes = [
     { id: "name", label: "Name" },
     { id: "email", label: "Email" },
     { 
       id: "role", 
       label: "Role",
-      render: (row) => row.role || "N/A" // show role string from backend
+      render: (row) => row.role || "N/A"
     },
     { 
       id: "status", 
@@ -24,7 +24,6 @@ const Users = ({ currentUser }) => {
     },
   ];
 
-  // Initialize useTable
   const { tableUI, fetchData } = useTable({
     attributes,
     tableType: "Users",
@@ -40,10 +39,17 @@ const Users = ({ currentUser }) => {
     },
   });
 
-  // Refresh table after save
-  const handleSave = () => fetchData();
+  const handleSave = async (userData) => {
+    console.log("User saved, refreshing table...", userData);
+    setOpen(false);
+    await fetchData();
+  };
 
-  // Role-based access
+  const handleResponse = (responseData) => {
+    setResponse(responseData);
+    console.log("Response:", responseData);
+  };
+
   if (!["HR"].includes(user?.role)) return <p>Access Denied</p>;
 
   return (
@@ -55,6 +61,7 @@ const Users = ({ currentUser }) => {
         modalType={modalType}
         modalData={modalData}
         onSave={handleSave}
+        onResponse={handleResponse}
       />
     </>
   );

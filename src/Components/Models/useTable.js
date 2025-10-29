@@ -74,7 +74,7 @@ export function useTable({
   const [rowsPerPage, setRowsPerPage] = useState(
     savedState.rowsPerPage || limitPerPage
   );
-  const [searchQuery, setSearchQuery] = useState(savedState.searchQuery || "");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selected, setSelected] = useState([]);
   const [data, setData] = useState([]);
   const [totalRecords, setTotalRecords] = useState(0);
@@ -84,57 +84,53 @@ export function useTable({
   const [modelData, setModelData] = useState({});
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
-
   const getStatusStyles = (status) => {
-  switch (status) {
-    case "Active":
+    switch (status) {
+      case "Active":
       case "Approved":
-        case "Completed":
-           case "Present":
-            case "Paid":
-      return {
-        color: "var(--success-color)",
-        background: "var(--success-bgcolor)",
-      };
-    case "Terminated":
-    case "Rejected":
-    case "Inactive":
-       case "Absent":
-        case "Unpaid":
-      return {
-        color: "var(--error-color)",
-        background: "var(--error-bgcolor)",
-      };
-     
-    case "Resigned":
+      case "Completed":
+      case "Present":
+      case "Paid":
+        return {
+          color: "var(--success-color)",
+          background: "var(--success-bgcolor)",
+        };
+      case "Terminated":
+      case "Rejected":
+      case "Inactive":
+      case "Absent":
+      case "Unpaid":
+        return {
+          color: "var(--error-color)",
+          background: "var(--error-bgcolor)",
+        };
+      case "Resigned":
       case "Late":
       case "In Progress":
-      case "Closed": 
-      return {
-        color: "var(--pending-color)",
-        background: "var(--pending-bgcolor)",
-      };
-    case "On Leave":
+      case "Closed":
+        return {
+          color: "var(--pending-color)",
+          background: "var(--pending-bgcolor)",
+        };
+      case "On Leave":
       case "Leave":
-      return {
-        color: "var(--info-color)",
-        background: "var(--info-bgcolor)",
-      };
-    case "Half Day":
-     case "Pending":
-        
-      return{
-         color: "var(--warning-color)",
-        background: "var(--warning-bgcolor)",
-      }
-    
-    default:
-      return {
-        color: "var(--neutral-color)",
-        background: "var(--neutral-bgcolor)",
-      };
-  }
-};
+        return {
+          color: "var(--info-color)",
+          background: "var(--info-bgcolor)",
+        };
+      case "Half Day":
+      case "Pending":
+        return {
+          color: "var(--warning-color)",
+          background: "var(--warning-bgcolor)",
+        };
+      default:
+        return {
+          color: "var(--neutral-color)",
+          background: "var(--neutral-bgcolor)",
+        };
+    }
+  };
 
   const fetchData = async () => {
     let response;
@@ -148,140 +144,140 @@ export function useTable({
         setData(response.categories || []);
         setTotalRecords(response.categories ? response.categories.length : 0);
       }
-    }  else if (tableType === "Employees") {
-  response = await fetchEmployees(page, rowsPerPage, searchQuery);
-  if (response.status === 400) {
-    localStorage.removeItem("Token");
-    navigate("/login");
-  } else {
-    setData(response.data);
-    setTotalRecords(response.totalPages);
-  }
-} else if (tableType === "Departments") {
-      response = await fetchDepartments(page, rowsPerPage, searchQuery);
-      if (response?.data) {
+    } else if (tableType === "Employees") {
+      response = await fetchEmployees(page, rowsPerPage, searchQuery);
+      if (response.status === 400) {
+        localStorage.removeItem("Token");
+        navigate("/login");
+      } else {
         setData(response.data);
-        setTotalRecords(response.data.length);
+        setTotalRecords(response.totalPages);
       }
-    }  else if (tableType === "Designations") {
-  response = await fetchDesignations(page, rowsPerPage, searchQuery);
-  if (response?.status === 400) {
-    localStorage.removeItem("Token");
-    navigate("/login");
-  } else {
-    setData(response?.data || []);
-    setTotalRecords(response?.total || 0);
-  }
-}
- else if (tableType === "Attendance") {
-  response = await fetchAttendance(page, rowsPerPage, searchQuery);
-  if (response?.status === 400) {
-    localStorage.removeItem("Token");
-    navigate("/login");
-  } else {
-    setData(response?.data || []);
-    setTotalRecords(response?.total || 0);
-  }
-}
- else if (tableType === "Leaves") {
-  response = await fetchLeaves(page, rowsPerPage, searchQuery);
-  if (response?.status === 400) {
-    localStorage.removeItem("Token");
-    navigate("/login");
-  } else {
-    setData(response?.data || []);
-    setTotalRecords(response?.total || 0);
-  }
-}
-else if (tableType === "Jobs") {
+    } else if (tableType === "Departments") {
+      response = await fetchDepartments(page, rowsPerPage, searchQuery);
+      if (response?.status === 400) {
+        localStorage.removeItem("Token");
+        navigate("/login");
+      } else {
+        setData(response?.data || []);
+        setTotalRecords(response?.total || 0);
+      }
+    } else if (tableType === "Designations") {
+      response = await fetchDesignations(page, rowsPerPage, searchQuery);
+      if (response?.status === 400) {
+        localStorage.removeItem("Token");
+        navigate("/login");
+      } else {
+        setData(response?.data || []);
+        setTotalRecords(response?.total || 0);
+      }
+    } else if (tableType === "Attendance") {
+      response = await fetchAttendance(page, rowsPerPage, searchQuery);
+      if (response?.status === 400) {
+        localStorage.removeItem("Token");
+        navigate("/login");
+      } else {
+        setData(response?.data || []);
+        setTotalRecords(response?.total || 0);
+      }
+    } else if (tableType === "Leaves") {
+      response = await fetchLeaves(page, rowsPerPage, searchQuery);
+      if (response?.status === 400) {
+        localStorage.removeItem("Token");
+        navigate("/login");
+      } else {
+        setData(response?.data || []);
+        setTotalRecords(response?.total || 0);
+      }
+    } else if (tableType === "Jobs") {
       response = await fetchJobs(page, rowsPerPage, searchQuery);
-      if (response?.data) {
-        setData(response.data);
-        setTotalRecords(response.data.length);
+      if (response?.status === 400) {
+        localStorage.removeItem("Token");
+        navigate("/login");
+      } else {
+        setData(response?.data || []);
+        setTotalRecords(response?.total || 0);
       }
     } else if (tableType === "Applications") {
-  response = await fetchApplications(page, rowsPerPage, searchQuery);
-  if (response?.status === 400) {
-    localStorage.removeItem("Token");
-    navigate("/login");
-  } else {
-    setData(response?.data || []);
-    setTotalRecords(response?.total || 0);
-  }
-}
-  else if (tableType === "Performance") {
-  response = await fetchPerformance(page, rowsPerPage, searchQuery);
-  if (response?.status === 400) {
-    localStorage.removeItem("Token");
-    navigate("/login");
-  } else {
-    setData(response?.data || []);
-    setTotalRecords(response?.total || 0);
-  }
-}   else if (tableType === "Training") {
-  response = await fetchTrainings(page, rowsPerPage, searchQuery);
-  if (response?.status === 400) {
-    localStorage.removeItem("Token");
-    navigate("/login");
-  } else {
-    setData(response?.data || []);
-    setTotalRecords(response?.total || 0);
-  }
-}
-  else if (tableType === "Payroll") {
-  response = await fetchPayrolls(page, rowsPerPage, searchQuery);
-  if (response?.status === 400) {
-    localStorage.removeItem("Token");
-    navigate("/login");
-  } else {
-    setData(response?.data || []);
-    setTotalRecords(response?.total || 0);
-  }
-}  else if (tableType === "Fines") {
-  response = await fetchFines(page, rowsPerPage, searchQuery);
-  if (response?.status === 400) {
-    localStorage.removeItem("Token");
-    navigate("/login");
-  } else {
-    setData(response?.data || []);
-    setTotalRecords(response?.total || 0);
-  }
-}
- else if (tableType === "Roles") {
-  response = await getRoles(page, rowsPerPage, searchQuery);
-  if (response?.status === 400) {
-    localStorage.removeItem("token");
-    navigate("/login");
-  } else {
-    setData(response?.data || []);
-    setTotalRecords(response?.total || 0);
-  }
-} 
-else if (tableType === "Users") {
-  response = await getUsers(page, rowsPerPage, searchQuery);
-  if (response?.status === 400) {
-    localStorage.removeItem("Token");
-    navigate("/login");
-  } else {
-    setData(response?.data || []);
-    setTotalRecords(response?.total || 0);
-  }
-}
-    else {
+      response = await fetchApplications(page, rowsPerPage, searchQuery);
+      if (response?.status === 400) {
+        localStorage.removeItem("Token");
+        navigate("/login");
+      } else {
+        setData(response?.data || []);
+        setTotalRecords(response?.total || 0);
+      }
+    } else if (tableType === "Performance") {
+      response = await fetchPerformance(page, rowsPerPage, searchQuery);
+      if (response?.status === 400) {
+        localStorage.removeItem("Token");
+        navigate("/login");
+      } else {
+        setData(response?.data || []);
+        setTotalRecords(response?.total || 0);
+      }
+    } else if (tableType === "Training") {
+      response = await fetchTrainings(page, rowsPerPage, searchQuery);
+      if (response?.status === 400) {
+        localStorage.removeItem("Token");
+        navigate("/login");
+      } else {
+        setData(response?.data || []);
+        setTotalRecords(response?.total || 0);
+      }
+    } else if (tableType === "Payroll") {
+      response = await fetchPayrolls(page, rowsPerPage, searchQuery);
+      if (response?.status === 400) {
+        localStorage.removeItem("Token");
+        navigate("/login");
+      } else {
+        setData(response?.data || []);
+        setTotalRecords(response?.total || 0);
+      }
+    } else if (tableType === "Fines") {
+      response = await fetchFines(page, rowsPerPage, searchQuery);
+      if (response?.status === 400) {
+        localStorage.removeItem("Token");
+        navigate("/login");
+      } else {
+        setData(response?.data || []);
+        setTotalRecords(response?.total || 0);
+      }
+    } else if (tableType === "Roles") {
+      response = await getRoles(page, rowsPerPage, searchQuery);
+      if (response?.status === 400) {
+        localStorage.removeItem("token");
+        navigate("/login");
+      } else {
+        setData(response?.data || []);
+        setTotalRecords(response?.total || 0);
+      }
+    } else if (tableType === "Users") {
+      response = await getUsers(page, rowsPerPage, searchQuery);
+      if (response?.status === 400) {
+        localStorage.removeItem("Token");
+        navigate("/login");
+      } else {
+        setData(response?.data || []);
+        setTotalRecords(response?.total || 0);
+      }
+    } else {
       setData(pageData);
     }
   };
 
+  // Fetch data when page, rowsPerPage, or searchQuery changes
   useEffect(() => {
     fetchData();
-  }, [page, rowsPerPage]);
+  }, [page, rowsPerPage, searchQuery]);
 
+  // Save only page and rowsPerPage to localStorage (not searchQuery)
   useEffect(() => {
     localStorage.setItem(
       `${tableType}-tableState`,
-      JSON.stringify({ page, rowsPerPage, searchQuery })
+      JSON.stringify({ page, rowsPerPage })
     );
-  }, [page, rowsPerPage, searchQuery, tableType]);
+  }, [page, rowsPerPage, tableType]);
 
   const handleSelectAllClick = (event) => {
     setSelected(event.target.checked ? data.map((row) => row._id) : []);
@@ -295,7 +291,7 @@ else if (tableType === "Users") {
 
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+    setPage(1);
   };
 
   const handleViewClick = (row) => {
@@ -303,7 +299,7 @@ else if (tableType === "Users") {
   };
 
   const handleSearch = () => {
-    fetchData(page, rowsPerPage, searchQuery);
+    setPage(1); // Reset to first page when manually searching
   };
 
   const handleDelete = async () => {
@@ -353,7 +349,7 @@ else if (tableType === "Users") {
         for (const id of selected) await deleteRole(id);
         response = { status: 200, message: "Deleted successfully" };
       } else if (tableType === "Users") {
-        for (const id of selected) await deleteUser(id);  
+        for (const id of selected) await deleteUser(id);
         response = { status: 200, message: "Deleted successfully" };
       }
 
@@ -363,6 +359,7 @@ else if (tableType === "Users") {
           prevData.filter((row) => !selected.includes(row._id))
         );
         setSelected([]);
+        fetchData(); // Refresh data after deletion
       } else {
         showAlert("error", response?.message || "Failed to delete items");
       }
@@ -435,8 +432,18 @@ else if (tableType === "Users") {
                 size="small"
                 placeholder={`Search ${tableType}...`}
                 variant="outlined"
+                name={`search-${tableType}`}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSearch();
+                  }
+                }}
                 sx={{
                   minWidth: 200,
                   backgroundColor: "white",
@@ -522,11 +529,7 @@ else if (tableType === "Users") {
                 </TableHead>
                 <TableBody>
                   {data.map((row, index) => {
-                    // const isItemSelected = isSelected(
-                    //   tableType === "Departments" ? row.id : row._id
-                    // );
                     const isItemSelected = isSelected(row._id);
-
 
                     return (
                       <TableRow
@@ -552,25 +555,33 @@ else if (tableType === "Users") {
                             key={attr.id}
                             sx={{ color: "var(--black-color)" }}
                           >
-                            {attr.id === "createdAt"||attr.id === "updatedAt"||attr.id === "appraisalDate"  ||attr.id === "dateOfBirth"    || attr.id === "startDate" || attr.id === "endDate" ||
-                          attr.id === "postingDate"||attr.id === "expiryDate"|| attr.id === "fineDate"||  attr.id === "paymentDate"|| attr.id === "publishedDate" ? (
+                            {attr.id === "createdAt" ||
+                            attr.id === "updatedAt" ||
+                            attr.id === "appraisalDate" ||
+                            attr.id === "dateOfBirth" ||
+                            attr.id === "startDate" ||
+                            attr.id === "endDate" ||
+                            attr.id === "postingDate" ||
+                            attr.id === "expiryDate" ||
+                            attr.id === "fineDate" ||
+                            attr.id === "paymentDate" ||
+                            attr.id === "publishedDate" ? (
                               formatDate(row[attr.id])
                             ) : attr.id === "status" ? (
-  <span
-    style={{
-      ...getStatusStyles(row[attr.id]),
-      fontWeight: "600",
-      padding: "5px 10px",
-      borderRadius: "var(--border-radius-secondary)",
-      display: "inline-block",
-      textAlign: "center",
-      minWidth: "100px",
-    }}
-  >
-    {row[attr.id] || "N/A"}
-  </span>
-)
- : row[attr.id] === 0 ? (
+                              <span
+                                style={{
+                                  ...getStatusStyles(row[attr.id]),
+                                  fontWeight: "600",
+                                  padding: "5px 10px",
+                                  borderRadius: "var(--border-radius-secondary)",
+                                  display: "inline-block",
+                                  textAlign: "center",
+                                  minWidth: "100px",
+                                }}
+                              >
+                                {row[attr.id] || "N/A"}
+                              </span>
+                            ) : row[attr.id] === 0 ? (
                               0
                             ) : typeof getNestedValue(row, attr.id) ===
                               "string" ? (

@@ -52,18 +52,19 @@ export const fetchallcategorylist = async (page, rowsPerPages) => {
   return invokeApi(reqObj);
 };
 
-export const fetchDepartments = async () => {
+export const fetchDepartments = async (page = 1, limit = 10, search = "") => {
+  const searchParam = search ? `&search=${encodeURIComponent(search)}` : "";
+  
   const reqObj = {
-    path: "/departments/getDepartments",
+    path: `/departments/getDepartments?page=${page}&limit=${limit}${searchParam}`,
     method: "GET",
-     headers: {
+    headers: {
       "Cache-Control": "no-cache",
       Pragma: "no-cache",
     },
   };
   return invokeApi(reqObj);
 };
-
 export const fetchDesignations = async (page = 1, rowsPerPage = 10, searchQuery = "") => {
   const reqObj = {
     path: `/designations/getDesignations?page=${page}&limit=${rowsPerPage}&search=${encodeURIComponent(searchQuery)}`,
@@ -100,8 +101,6 @@ export const fetchAttendance = async (page = 1, limit = 10, searchQuery = "") =>
   return invokeApi(reqObj);
 };
 
-
- 
  export const fetchLeaves = async (page = 1, limit = 10, searchQuery = "") => {
   const reqObj = {
     path: `/leaves/getLeaves?page=${page}&limit=${limit}&search=${encodeURIComponent(searchQuery)}`,
@@ -114,11 +113,16 @@ export const fetchAttendance = async (page = 1, limit = 10, searchQuery = "") =>
   return invokeApi(reqObj);
 };
 
-
-export const fetchJobs = async () => {
+export const fetchJobs = async (page = 1, limit = 10, search = "") => {  
+  const searchParam = search ? `&search=${encodeURIComponent(search)}` : "";
+  
   const reqObj = {
-    path: "/jobs/getJobs",
+    path: `/jobs/getJobs?page=${page}&limit=${limit}${searchParam}`,  
     method: "GET",
+    headers: {
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+    },
   };
   return invokeApi(reqObj);
 };

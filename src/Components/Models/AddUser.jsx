@@ -23,7 +23,9 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
   const [errors, setErrors] = React.useState({});
   const [allRoles, setAllRoles] = React.useState([]);
   const [id, setId] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
 
+  // Fetch roles when dialog opens
   React.useEffect(() => {
     const fetchRoles = async () => {
       try {
@@ -33,20 +35,51 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
         console.error("Error fetching roles:", error);
       }
     };
-    if (open) fetchRoles();
+    
+    if (open) {
+      fetchRoles();
+      setErrors({});
+    }
   }, [open]);
 
- React.useEffect(() => {
-  if (modalType === "Edit" && modalData && allRoles.length > 0) {
-    setForm({
-      name: modalData.name || "",
-      email: modalData.email || "",
-      password: "",
-      role: allRoles.find(r => r.name === modalData.role)?.name || "",
-      status: modalData.status || "Active",
-    });
-    setId(modalData._id || "");
-  } else if (modalType === "Add") {
+  // Populate form data based on modalType
+  React.useEffect(() => {
+    if (!open) return;
+
+    if ((modalType === "Edit" || modalType === "Update") && modalData) {
+      if (allRoles.length === 0) return;
+
+      const userId = modalData._id || modalData.id || modalData.userId || "";
+      
+      setForm({
+        name: modalData.name || "",
+        email: modalData.email || "",
+        password: "",
+        role: modalData.role || "",
+        status: modalData.status || "Active",
+      });
+      setId(userId);
+    } else if (modalType === "Add") {
+      setForm({
+        name: "",
+        email: "",
+        password: "",
+        role: "",
+        status: "Active",
+      });
+      setId("");
+    }
+  }, [modalType, modalData, allRoles, open]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+  };
+
+  const handleClose = () => {
+    setErrors({});
+    setLoading(false);
     setForm({
       name: "",
       email: "",
@@ -55,27 +88,32 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
       status: "Active",
     });
     setId("");
-  }
-}, [modalType, modalData, allRoles]); 
-
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: "" })); 
-  };
-
-  const handleClose = () => {
-    setErrors({});
     setOpen(false);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if ((modalType === "Edit" || modalType === "Update") && !id) {
+      if (typeof onResponse === "function") {
+        onResponse({
+          messageType: "error",
+          message: "User ID is missing. Cannot update user.",
+        });
+      }
+      return;
+    }
+    
     setErrors({});
+    setLoading(true);
 
     try {
       const payload = { ...form };
+      
+      if (modalType === "Edit" || modalType === "Update") {
+        delete payload.password;
+      }
+
       let response;
 
       if (modalType === "Add") {
@@ -84,24 +122,31 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
         response = await updateUser(id, payload);
       }
 
-      console.log("Response:", response);
+      console.log("✅ API Response:", response);
 
-      const resData = response?.data || response; 
-      if (resData.status === 200 || resData.status === 201) {
-        if (typeof onSave === "function") onSave(resData.data);
+      // invokeApi returns { status: 201, message: "...", data: {...} }
+      if (response?.status === 200 || response?.status === 201) {
+        console.log("🎉 Success! Closing modal and refreshing...");
+        
         if (typeof onResponse === "function") {
           onResponse({
             messageType: "success",
-            message: resData.message || "User saved successfully!",
+            message: response.message || "User saved successfully!",
           });
         }
-        setOpen(false);
+        
+        if (typeof onSave === "function") {
+          await onSave(response.data);
+        }
+        
+        handleClose();
         return;
       }
 
-      if (resData.status === 400 && Array.isArray(resData.missingFields)) {
+      // Handle validation errors
+      if (response?.status === 400 && Array.isArray(response?.missingFields)) {
         const fieldErrors = {};
-        resData.missingFields.forEach((f) => {
+        response.missingFields.forEach((f) => {
           fieldErrors[f.name] = f.message;
         });
         setErrors(fieldErrors);
@@ -109,25 +154,27 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
         if (typeof onResponse === "function") {
           onResponse({
             messageType: "error",
-            message: resData.message || "Please fill all required fields.",
+            message: response.message || "Please fill all required fields.",
           });
         }
+        setLoading(false);
         return;
       }
 
+      // Other errors
       if (typeof onResponse === "function") {
         onResponse({
           messageType: "error",
-          message: resData.message || "Something went wrong!",
+          message: response?.message || "Something went wrong!",
         });
       }
+      setLoading(false);
     } catch (error) {
-      console.error("Error saving user:", error);
+      console.error("❌ Error:", error);
 
-      const resData = error?.response?.data;
-      if (resData?.missingFields) {
+      if (error?.missingFields) {
         const fieldErrors = {};
-        resData.missingFields.forEach((f) => {
+        error.missingFields.forEach((f) => {
           fieldErrors[f.name] = f.message;
         });
         setErrors(fieldErrors);
@@ -136,38 +183,49 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
       if (typeof onResponse === "function") {
         onResponse({
           messageType: "error",
-          message: resData?.message || "Internal Server Error",
+          message: error?.message || "Internal Server Error",
         });
       }
+      setLoading(false);
     }
   };
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>{modalType} User</DialogTitle>
-      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        {modalType === "Edit" && id && (
-          <TextField label="User ID" value={id} fullWidth disabled />
+      <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 2 }}>
+        {(modalType === "Edit" || modalType === "Update") && modalData?.userId && (
+          <TextField 
+            label="User ID" 
+            value={modalData.userId} 
+            fullWidth 
+            disabled 
+          />
         )}
 
         <TextField
           label="Name"
           name="name"
           fullWidth
+          required
           value={form.name}
           onChange={handleChange}
           error={!!errors.name}
           helperText={errors.name}
+          disabled={loading}
         />
 
         <TextField
           label="Email"
           name="email"
+          type="email"
           fullWidth
+          required
           value={form.email}
           onChange={handleChange}
           error={!!errors.email}
           helperText={errors.email}
+          disabled={loading}
         />
 
         {modalType === "Add" && (
@@ -176,10 +234,12 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
             label="Password"
             name="password"
             fullWidth
+            required
             value={form.password}
             onChange={handleChange}
             error={!!errors.password}
             helperText={errors.password}
+            disabled={loading}
           />
         )}
 
@@ -188,12 +248,16 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
           label="Assign Role"
           name="role"
           fullWidth
+          required
           value={form.role}
           onChange={handleChange}
           error={!!errors.role}
           helperText={errors.role}
+          disabled={loading || allRoles.length === 0}
         >
-          <MenuItem value="">Select Role</MenuItem>
+          <MenuItem value="">
+            {allRoles.length === 0 ? "Loading roles..." : "Select Role"}
+          </MenuItem>
           {allRoles.map((r) => (
             <MenuItem key={r._id} value={r.name}>
               {r.name}
@@ -206,8 +270,10 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
           label="Status"
           name="status"
           fullWidth
+          required
           value={form.status}
           onChange={handleChange}
+          disabled={loading}
         >
           <MenuItem value="Active">Active</MenuItem>
           <MenuItem value="Inactive">Inactive</MenuItem>
@@ -215,11 +281,21 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={handleClose} color="error" variant="contained">
+        <Button 
+          onClick={handleClose} 
+          color="error" 
+          variant="contained"
+          disabled={loading}
+        >
           Cancel
         </Button>
-        <Button onClick={handleSubmit} color="primary" variant="contained">
-          {modalType === "Add" ? "Create" : "Update"}
+        <Button 
+          onClick={handleSubmit} 
+          color="primary" 
+          variant="contained"
+          disabled={loading}
+        >
+          {loading ? "Saving..." : modalType === "Add" ? "Create" : "Update"}
         </Button>
       </DialogActions>
     </Dialog>

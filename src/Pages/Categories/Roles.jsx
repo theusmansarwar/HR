@@ -27,7 +27,7 @@ const Roles = ({ currentUser }) => {
     onEdit: row => { setModalType("Update"); setModalData(row); setOpen(true); }
   });
 
-  const handleSave = () => fetchData(); // refresh table after add/update
+  const handleSave = () => fetchData();
 
   if (user?.role !== "HR") return <p>Access Denied</p>;
 
