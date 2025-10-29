@@ -22,7 +22,7 @@ import { GiPayMoney } from "react-icons/gi";
 import { IoLogOut } from "react-icons/io5";
 import { Tooltip } from "@mui/material";
 
-import zemaltlogo from "./Assets/zemalt-logo.png";
+import zemaltlogo from "./Assets/HR-new.png";
 import { fetchRoleByName } from "./DAL/fetch";
 
 import Dashboard from "./Pages/Dashboard/Dashboard";

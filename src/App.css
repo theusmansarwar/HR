@@ -72,13 +72,14 @@ h6 {
   height: calc(100vh - 6vh); 
   margin: 3vh 1%;
   position: relative;
-  gap: 30px;
+  gap: -20px;
   box-shadow: var(--default-box-shadow);
   border-radius: var(--default-border-radius);
   display: flex;
   flex-direction: column;
   align-items: center;
   transition: width 0.3s ease;
+   
 }
 
 .app-side-bar.closed {
@@ -99,6 +100,7 @@ h6 {
   justify-content: center;
   font-size: 18px;
   transition: background-color 0.3s ease;
+  z-index: 10; 
 }
 .app-side-bar.closed .opencloseicon {
    height: 30px;
@@ -115,30 +117,31 @@ h6 {
 .opencloseicon svg {
   transition: transform 0.3s ease;
 }
-
-/* .submenu {
-  margin-left: 25px; 
-  margin-top: 5px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-} */
+ 
 .submenu {
   background-color: #dce8ff;
   margin: 4px 0 4px 0; 
   padding: 6px 0;
   border-radius: 8px;
   transition: all 0.3s ease;
+  width: 100%;  
+  box-sizing: border-box;
+  list-style: none; /* YE ADD KARO */
+  padding-left: 0 !important; 
+  padding-right: 0 !important;
 }
 
 .submenu-item {
-  padding: 8px 10px;
+  width: 100%; 
+  /* padding: 14px 10px; */
+  padding: 8px 10px 8px 10px;
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 14px;
   border-radius: 4px;
   transition: background 0.2s ease;
+  box-sizing: border-box;
 }
 
 .submenu-item:hover {
@@ -156,7 +159,7 @@ h6 {
 
 .home-zemalt-logo {
   width: 60%;
-  margin-top: 20px;
+  margin-top: 5px;
   transition: opacity 0.3s ease, width 0.3s ease;
 }
 
@@ -203,14 +206,20 @@ h6 {
   display: flex;
 }
 
-.app-side-bar ul {
+ 
+  .app-side-bar ul {
   list-style: none;
   margin: 0%;
-  padding: 0%;
+  padding: 0 0 0 0; 
   width: 90%;
   position: relative;
-  height: 100%;
+  flex: 1;  
+  overflow-y: auto;  
+  overflow-x: hidden;  
+  scrollbar-width: none; 
+  
 }
+
 .app-side-bar ul li:last-child {
   position: absolute;
   bottom: 10px;
@@ -286,14 +295,7 @@ li:has(.submenu) > .menu-item {
   border-radius: 8px;
 }
 
-/* .submenu {
-  background-color: #dce8ff;
-  margin: 0;
-  padding: 6px 0;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  box-sizing: border-box;
-} */
+ 
 
 .submenu-item {
   padding: 8px 14px;
@@ -337,57 +339,7 @@ li:has(.submenu) > .menu-item {
   background-color: #f5f5f5;
 }
 
-/* .app-side-bar .Parent-ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  width: 90%;
-  position: relative;
-  height: calc(100% - 75px);
-  overflow-y: auto;
-  scrollbar-width: none;
-}
-
-.app-side-bar .Parent-ul li span {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.app-side-bar .Parent-ul li.unselected span:hover {
-  background-color: #e8f0ff;
-}
-
-.app-side-bar li.selected-item > span {
-  background-color: var(--primary-color);
-  color: var(--white-color);
-}
-
-.app-side-bar .Parent-ul .Child-ul {
-  background-color: #dce8ff;
-  margin: 5px 0 5px 20px;
-  padding: 5px 0;
-  border-radius: 8px;
-}
-
-.app-side-bar .Parent-ul .Child-ul li span {
-  padding: 8px 20px;
-  border-radius: 6px;
-}
-
-.app-side-bar .Parent-ul .Child-ul li.unselected span:hover {
-  background-color: var(--primary-color);
-  color: var(--white-color);
-}
-
-.app-side-bar .Parent-ul .Child-ul li.selected-item span {
-  background-color: var(--primary-color);
-  color: var(--white-color);
-} */
+ 
 
 .Alert-message-area {
   width: 100%;
@@ -433,6 +385,7 @@ li:has(.submenu) > .menu-item {
 
   .app-side-bar .opencloseicon {
     display: none;
+
   }
 
   .app-side-bar ul li span {
