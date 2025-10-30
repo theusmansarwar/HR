@@ -54,7 +54,6 @@ export default function AddPayroll({
   const [errors, setErrors] = React.useState({});
   const [id, setId] = React.useState("");
 
-  // ✅ Fetch employees
   React.useEffect(() => {
     const loadEmployees = async () => {
       try {
@@ -67,7 +66,6 @@ export default function AddPayroll({
     loadEmployees();
   }, []);
 
-  // ✅ Prefill data on edit
   React.useEffect(() => {
     if (Modeldata) {
       setForm({
@@ -108,20 +106,17 @@ export default function AddPayroll({
     }
   }, [Modeldata]);
 
-  // ✅ Close modal & reset
   const handleClose = () => {
     setErrors({});
     setOpen(false);
   };
 
-  // ✅ Handle change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  // ✅ Handle submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
@@ -138,11 +133,10 @@ export default function AddPayroll({
         onSave(response.data);
         onResponse({
           messageType: "success",
-          message: response.message || "Payroll saved successfully ✅",
+          message: response.message || "Payroll saved successfully",
         });
         setOpen(false);
       } else if (response.status === 400 && response.missingFields) {
-        // 🟥 Show backend validation errors
         const fieldErrors = {};
         response.missingFields.forEach((f) => {
           fieldErrors[f.name] = f.message;
@@ -150,19 +144,19 @@ export default function AddPayroll({
         setErrors(fieldErrors);
         onResponse({
           messageType: "error",
-          message: response.message || "Validation failed ⚠️",
+          message: response.message || "Validation failed",
         });
       } else {
         onResponse({
           messageType: "error",
-          message: response.message || "Something went wrong ❌",
+          message: response.message || "Something went wrong",
         });
       }
     } catch (error) {
       console.error("Error saving payroll:", error);
       onResponse({
         messageType: "error",
-        message: "Internal Server Error ❌",
+        message: "Internal Server Error",
       });
     }
   };
@@ -188,7 +182,6 @@ export default function AddPayroll({
         )}
 
         <Grid container spacing={2}>
-          {/* Employee Dropdown */}
           <Grid item xs={6}>
             <TextField
               select

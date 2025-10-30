@@ -69,7 +69,6 @@ export default function AddEmployee({
   const [imagePreview, setImagePreview] = React.useState(null);
   const [errors, setErrors] = React.useState({});
 
-  // ✅ Fetch dropdowns and prefill form if editing
   React.useEffect(() => {
     const loadData = async () => {
       try {
@@ -117,7 +116,7 @@ export default function AddEmployee({
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: "" })); // clear field error on change
+    setErrors((prev) => ({ ...prev, [name]: "" })); 
   };
 
   const handleProfileImageChange = (e) => {
@@ -128,7 +127,6 @@ export default function AddEmployee({
     }
   };
 
-  // ✅ Handle backend-driven validation
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -189,7 +187,6 @@ export default function AddEmployee({
   return (
     <Modal open={open} onClose={handleClose}>
       <Box sx={style}>
-        {/* HEADER */}
         <Box
           sx={{
             p: 2,
@@ -205,7 +202,6 @@ export default function AddEmployee({
           </Typography>
         </Box>
 
-        {/* CONTENT */}
         <Box
           sx={{
             flex: 1,
@@ -216,7 +212,6 @@ export default function AddEmployee({
           }}
         >
           <Grid container spacing={2}>
-            {/* Profile Image */}
             <Grid item xs={12}>
               <Box display="flex" alignItems="center" gap={2}>
                 <Avatar
@@ -236,7 +231,6 @@ export default function AddEmployee({
               </Box>
             </Grid>
 
-            {/* BASIC INFO */}
             <Grid item xs={6}>
               <TextField
                 label="First Name"
@@ -326,7 +320,6 @@ export default function AddEmployee({
               />
             </Grid>
 
-            {/* JOB INFO */}
             <Grid item xs={6}>
               <TextField
                 select
@@ -461,7 +454,6 @@ export default function AddEmployee({
           </Grid>
         </Box>
 
-        {/* FOOTER BUTTONS */}
         <Divider />
         <Box
           sx={{

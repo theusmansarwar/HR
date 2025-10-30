@@ -53,7 +53,6 @@ export default function AddAttendance({
   const [employees, setEmployees] = React.useState([]);
   const [id, setId] = React.useState("");
 
-  // Fetch employees once
   React.useEffect(() => {
     const loadEmployees = async () => {
       try {
@@ -66,7 +65,6 @@ export default function AddAttendance({
     loadEmployees();
   }, []);
 
-  // Prefill form for edit
   React.useEffect(() => {
     console.log("=== DEBUG START ===");
     console.log("Modeldata:", Modeldata);
@@ -83,7 +81,6 @@ export default function AddAttendance({
           ? Modeldata.employeeId._id
           : Modeldata.employeeId;
 
-      // Fixed function to format date/time to HH:mm (24-hour format)
       const formatTime = (time) => {
         console.log("formatTime input:", time);
         if (!time) {
@@ -91,10 +88,8 @@ export default function AddAttendance({
           return "";
         }
         
-        // If time is already in HH:mm or HH:mm:ss format, return it directly
         if (typeof time === 'string' && /^\d{2}:\d{2}(:\d{2})?$/.test(time)) {
           console.log("Time already in correct format:", time);
-          // Return only HH:mm part (remove seconds if present)
           return time.substring(0, 5);
         }
         
@@ -103,7 +98,6 @@ export default function AddAttendance({
           console.log("Date object created:", date);
           console.log("Is valid date?", !isNaN(date.getTime()));
           
-          // Check if date is valid
           if (isNaN(date.getTime())) {
             console.log("Invalid date, returning empty");
             return "";
@@ -141,7 +135,7 @@ export default function AddAttendance({
       setForm(initialForm);
       setId("");
     }
-  }, [Modeldata, open]); // Added 'open' dependency to reset when modal opens
+  }, [Modeldata, open]); 
 
   const handleClose = () => {
     setErrors({});
@@ -162,8 +156,6 @@ export default function AddAttendance({
     setErrors({});
 
     let tempErrors = {};
-
-    // Overtime Hours validation
     if (form.overtimeHours < 0) {
       tempErrors.overtimeHours = "Overtime hours must be a positive value";
     }
@@ -171,7 +163,8 @@ export default function AddAttendance({
     if (Object.keys(tempErrors).length > 0) {
       setErrors(tempErrors);
       showAlert("error", "Please fix the errors before submitting");
-      return; // stop submission
+      return; 
+    
     }
 
     try {

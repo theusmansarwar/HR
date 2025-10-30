@@ -16,6 +16,8 @@
     "cors": "^2.8.5",
     "dayjs": "^1.11.18",
     "jodit-react": "^5.2.15",
+    "jspdf": "^3.0.3",
+    "jspdf-autotable": "^5.0.2",
     "react": "^19.0.0",
     "react-csv": "^2.2.2",
     "react-dom": "^19.0.0",

@@ -48,7 +48,6 @@ export default function AddTraining({
   const [errors, setErrors] = useState({});
   const [id, setId] = useState("");
 
-  // ✅ Fetch employees
   useEffect(() => {
     const loadEmployees = async () => {
       try {
@@ -61,7 +60,6 @@ export default function AddTraining({
     loadEmployees();
   }, []);
 
-  // ✅ Prefill for update
   useEffect(() => {
     if (Modeldata && Modeltype === "Update") {
       setForm({
@@ -120,16 +118,14 @@ export default function AddTraining({
         response = await updateTraining(id, form);
       }
 
-      // ✅ Success
       if (response.status === 200 || response.status === 201) {
         onSave(response.data);
         onResponse({
           messageType: "success",
-          message: response.message || "Training saved successfully ✅",
+          message: response.message || "Training saved successfully",
         });
         setOpen(false);
       }
-      // 🟥 Validation Error (backend)
       else if (response.status === 400 && response.missingFields) {
         const fieldErrors = {};
         response.missingFields.forEach((f) => {
@@ -141,7 +137,6 @@ export default function AddTraining({
           message: response.message || "Validation failed",
         });
       }
-      // 🟨 Other Errors
       else {
         onResponse({
           messageType: "error",

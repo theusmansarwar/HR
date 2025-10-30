@@ -48,7 +48,6 @@ export default function AddPerformance({
   const [errors, setErrors] = React.useState({});
   const [id, setId] = React.useState("");
 
-  // ✅ Fetch employees
   React.useEffect(() => {
     const loadEmployees = async () => {
       try {
@@ -61,7 +60,6 @@ export default function AddPerformance({
     loadEmployees();
   }, []);
 
-  // ✅ Populate form only on Update
   React.useEffect(() => {
     if (Modeltype === "Update" && Modeldata) {
       setForm({
@@ -92,20 +90,17 @@ export default function AddPerformance({
     }
   }, [Modeltype, Modeldata]);
 
-  // ✅ Close modal
   const handleClose = () => {
     setErrors({});
     setOpen(false);
   };
 
-  // ✅ Handle change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  // ✅ Handle submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
@@ -127,11 +122,10 @@ export default function AddPerformance({
         onSave(response.data);
         onResponse({
           messageType: "success",
-          message: response.message || "Performance saved successfully ✅",
+          message: response.message || "Performance saved successfully",
         });
         setOpen(false);
       } else if (response.status === 400 && response.missingFields) {
-        // 🟥 Backend validation errors
         const fieldErrors = {};
         response.missingFields.forEach((f) => {
           fieldErrors[f.name] = f.message;
@@ -144,14 +138,14 @@ export default function AddPerformance({
       } else {
         onResponse({
           messageType: "error",
-          message: response.message || "Something went wrong ❌",
+          message: response.message || "Something went wrong",
         });
       }
     } catch (error) {
       console.error("Error saving performance:", error);
       onResponse({
         messageType: "error",
-        message: "Internal Server Error ❌",
+        message: "Internal Server Error",
       });
     }
   };
@@ -213,7 +207,6 @@ export default function AddPerformance({
             />
           </Grid>
 
-          {/* Appraisal Date */}
           <Grid item xs={6}>
             <TextField
               type="date"
@@ -229,7 +222,6 @@ export default function AddPerformance({
             />
           </Grid>
 
-          {/* Score */}
           <Grid item xs={6}>
             <TextField
               type="number"
@@ -244,7 +236,6 @@ export default function AddPerformance({
             />
           </Grid>
 
-          {/* Remarks */}
           <Grid item xs={12}>
             <TextField
               label="Remarks"
@@ -259,7 +250,6 @@ export default function AddPerformance({
             />
           </Grid>
 
-          {/* Status */}
           <Grid item xs={6}>
             <TextField
               select
@@ -280,7 +270,6 @@ export default function AddPerformance({
           </Grid>
         </Grid>
 
-        {/* Buttons */}
         <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
           <Button onClick={handleClose} variant="contained" color="error">
             Cancel

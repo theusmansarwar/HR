@@ -135,8 +135,6 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
         
         // ✅ Show alert notification
         showAlert("success", successMessage);
-        
-        // Also call onResponse callback if provided
         if (typeof onResponse === "function") {
           onResponse({
             messageType: "success",
@@ -186,7 +184,7 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
       }
       setLoading(false);
     } catch (error) {
-      console.error("❌ Error:", error);
+      console.error("Error:", error);
 
       if (error?.missingFields) {
         const fieldErrors = {};

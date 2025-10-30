@@ -69,10 +69,7 @@ const AddRole = ({
         response = await updateRole(modalData._id, rolePayload);
       }
 
-      console.log("Backend Response:", response); // ✅ You’ll see this in console
-      // and network tab will show API call & backend errors
-
-      // 🧩 Handle backend validation errors
+      console.log("Backend Response:", response); 
       if (response?.status === 400 && response.missingFields) {
         const fieldErrors = {};
         response.missingFields.forEach((f) => {
@@ -88,7 +85,6 @@ const AddRole = ({
         return;
       }
 
-      // 🧩 Success
       if (
         response?.status === 200 ||
         response?.status === 201 ||

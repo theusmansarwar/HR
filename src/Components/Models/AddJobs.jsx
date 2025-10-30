@@ -49,7 +49,6 @@ export default function AddJobs({
   const [designations, setDesignations] = React.useState([]);
   const [id, setId] = React.useState("");
 
-  // Fetch dropdown data
   React.useEffect(() => {
     const loadDropdownData = async () => {
       try {
@@ -65,7 +64,6 @@ export default function AddJobs({
     loadDropdownData();
   }, []);
 
-  // Pre-fill if editing
   React.useEffect(() => {
     if (Modeldata) {
       setForm({
@@ -134,7 +132,6 @@ const handleClose = () => {
       }
 
       if (response?.status === 400 && response?.missingFields) {
-        // 🟥 show specific validation messages
         const newErrors = {};
         response.missingFields.forEach((f) => {
           newErrors[f.name] = f.message;
@@ -186,7 +183,6 @@ const handleClose = () => {
         )}
 
         <Grid container spacing={2}>
-          {/* Job Title */}
           <Grid item xs={6}>
             <TextField
               label="Job Title"
@@ -200,7 +196,6 @@ const handleClose = () => {
             />
           </Grid>
 
-          {/* Department */}
           <Grid item xs={6}>
             <TextField
               select
@@ -222,7 +217,6 @@ const handleClose = () => {
             </TextField>
           </Grid>
 
-          {/* Designation */}
           <Grid item xs={6}>
             <TextField
               select
@@ -244,7 +238,6 @@ const handleClose = () => {
             </TextField>
           </Grid>
 
-          {/* Status */}
           <Grid item xs={6}>
             <TextField
               select
@@ -264,7 +257,6 @@ const handleClose = () => {
             </TextField>
           </Grid>
 
-          {/* Posting Date */}
           <Grid item xs={6}>
             <TextField
               type="date"
@@ -280,7 +272,6 @@ const handleClose = () => {
             />
           </Grid>
 
-          {/* Expiry Date */}
           <Grid item xs={6}>
             <TextField
               type="date"
@@ -296,7 +287,6 @@ const handleClose = () => {
             />
           </Grid>
 
-          {/* Job Description */}
           <Grid item xs={12}>
             <TextField
               label="Job Description"
@@ -313,7 +303,6 @@ const handleClose = () => {
           </Grid>
         </Grid>
 
-        {/* Buttons */}
         <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
           <Button onClick={handleClose} variant="outlined" color="error">
             Cancel

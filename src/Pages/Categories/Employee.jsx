@@ -58,7 +58,7 @@ const Employees = () => {
         Modeldata={modelData}
         onSave={(data) => {
           handleSave(data);
-          fetchData(); // refresh table
+          fetchData(); 
         }}
         onResponse={(res) => console.log(res.message)}
       />

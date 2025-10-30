@@ -45,7 +45,7 @@ export default function AddCategories({ open, setOpen, Modeltype, Modeldata,onRe
       };
   let response;
     if (Modeltype === "Add") {
-      response =await createnewCategory(categoryData); // Sending FormData directly
+      response =await createnewCategory(categoryData); 
     }else{
         response =await updateCategory(id,categoryData); 
     }

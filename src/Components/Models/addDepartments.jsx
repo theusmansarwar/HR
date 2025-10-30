@@ -80,7 +80,7 @@ export default function AddDepartment({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
-    setErrors((prev) => ({ ...prev, [name]: "" })); // clear error on change
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleSubmit = async (e) => {
@@ -95,7 +95,6 @@ export default function AddDepartment({
         response = await updateDepartment(id, form);
       }
 
-      // ✅ Backend validation (400)
       if (response?.status === 400 && response?.missingFields) {
         const fieldErrors = {};
         response.missingFields.forEach((f) => {
@@ -111,7 +110,6 @@ export default function AddDepartment({
         return;
       }
 
-      // ✅ Success response
       if (response?.status === 200 || response?.status === 201) {
         if (onResponse)
           onResponse({

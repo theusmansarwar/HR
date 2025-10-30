@@ -118,7 +118,6 @@ export default function AddLeaves({
         });
         setOpen(false);
       } else if (response.status === 400 && response.missingFields) {
-        // 🟥 Backend-driven field errors (same as fines)
         const fieldErrors = {};
         response.missingFields.forEach((f) => {
           fieldErrors[f.name] = f.message;

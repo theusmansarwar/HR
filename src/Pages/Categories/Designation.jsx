@@ -20,7 +20,6 @@ const Designations = () => {
   const [modelType, setModelType] = useState("Add");
   const [modelData, setModelData] = useState(null);
 
-  // Handle Save or Update Designation
   const handleSave = async (designation) => {
     try {
       if (modelType === "Add") {
@@ -39,7 +38,6 @@ const Designations = () => {
     }
   };
 
-  // useTable Hook for displaying table + handling modal
   const { tableUI, fetchData } = useTable({
     attributes,
     tableType: "Designations",
@@ -67,7 +65,7 @@ const Designations = () => {
         Modeldata={modelData}
         onSave={async (data) => {
           await handleSave(data);
-          fetchData(); // refresh table after save or update
+          fetchData(); 
         }}
         onResponse={(res) => console.log(res.message)}
       />

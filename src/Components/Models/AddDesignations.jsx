@@ -49,8 +49,6 @@ export default function AddDesignation({
   const [departments, setDepartments] = React.useState([]);
   const [errors, setErrors] = React.useState({});
 
-  // Fetch Departments
-  // ✅ Fetch departments first, then prefill form
 React.useEffect(() => {
   const fetchData = async () => {
     try {
@@ -89,7 +87,6 @@ React.useEffect(() => {
     }
   }, [Modeldata]);
 
-  // Auto-generate ID for new designation
   React.useEffect(() => {
     const generateId = async () => {
       if (Modeltype === "Add") {
@@ -126,10 +123,9 @@ React.useEffect(() => {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
-    setErrors((prev) => ({ ...prev, [name]: "" })); // clear error on change
+    setErrors((prev) => ({ ...prev, [name]: "" })); 
   };
 
-  // Local validation before sending
   const validateForm = () => {
     const newErrors = {};
     if (!form.designationName?.trim())
@@ -151,7 +147,6 @@ React.useEffect(() => {
       response = await updateDesignation(id, form);
     }
 
-    // ✅ Handle backend validation array
     const missingFields =
       response?.data?.missingFields || response?.missingFields;
     if (missingFields && missingFields.length > 0) {
@@ -177,7 +172,6 @@ React.useEffect(() => {
       });
     }
   } catch (err) {
-    // ✅ Catch backend errors
     const missingFields = err.response?.data?.missingFields;
     if (missingFields && missingFields.length > 0) {
       const backendErrors = {};
