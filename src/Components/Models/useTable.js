@@ -35,6 +35,7 @@ import {
   fetchFines,
   getRoles,
   getUsers,
+  fetchActivity,
 } from "../../DAL/fetch";
 import { formatDate } from "../../Utils/Formatedate";
 import truncateText from "../../truncateText";
@@ -259,6 +260,15 @@ export function useTable({
         }
       } else if (tableType === "Users") {
         response = await getUsers(page, rowsPerPage, searchQuery);
+        if (response?.status === 400) {
+          localStorage.removeItem("Token");
+          navigate("/login");
+        } else {
+          setData(response?.data || []);
+          setTotalRecords(response?.total || 0);
+        }
+      }else if (tableType === "Activity") {
+        response = await fetchActivity(page, rowsPerPage, searchQuery);
         if (response?.status === 400) {
           localStorage.removeItem("Token");
           navigate("/login");

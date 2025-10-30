@@ -98,10 +98,15 @@ export const createFines = async (data) => {
   const reqObj = {
     path: "/fines/createFine",
     method: "POST",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
     postData: data,
   };
   return invokeApi(reqObj);
 };
+
 
 export const createPayroll = async (data) => {
   const reqObj = {

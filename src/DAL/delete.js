@@ -91,9 +91,14 @@ export const deleteFines = async (id) => {
   const reqObj = {
     path: `/fines/deleteFine/${id}`,
     method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
   };
   return invokeApi(reqObj);
 };
+
 
 export const deletePayroll = async (id) => {
   const reqObj = {

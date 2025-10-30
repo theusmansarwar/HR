@@ -5,7 +5,7 @@ export const fetchcategorylist = async () => {
     path: "/category/live",
     method: "GET",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("Token")}`,
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
 
     postData: {},
@@ -18,7 +18,7 @@ export const fetchDashboard = async () => {
     path: "",
     method: "GET",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("Token")}`,
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
 
     postData: {},
@@ -31,7 +31,7 @@ export const fetchDashboardChart = async () => {
     path: "/views/get/count",
     method: "GET",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("Token")}`,
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
 
     postData: {},
@@ -43,7 +43,7 @@ export const fetchallcategorylist = async (page, rowsPerPages) => {
     path: `/category/view?limit=${rowsPerPages}&page=${page}`,
     method: "GET",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("Token")}`,
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
 
     body: {},
@@ -70,7 +70,7 @@ export const fetchDesignations = async (page = 1, rowsPerPage = 10, searchQuery 
     path: `/designations/getDesignations?page=${page}&limit=${rowsPerPage}&search=${encodeURIComponent(searchQuery)}`,
     method: "GET",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("Token")}`,
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
     postData: {},
   };
@@ -83,7 +83,7 @@ export const fetchDesignations = async (page = 1, rowsPerPage = 10, searchQuery 
     path: `/employees/getEmployees?page=${page}&limit=${rowsPerPage}&search=${encodeURIComponent(searchQuery)}`,
     method: "GET",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("Token")}`,
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
     postData: {},
   };
@@ -94,7 +94,7 @@ export const fetchAttendance = async (page = 1, limit = 10, searchQuery = "") =>
     path: `/attendance/getAttendances?page=${page}&limit=${limit}&search=${encodeURIComponent(searchQuery)}`,
     method: "GET",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("Token")}`,
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
     postData: {},
   };
@@ -106,7 +106,7 @@ export const fetchAttendance = async (page = 1, limit = 10, searchQuery = "") =>
     path: `/leaves/getLeaves?page=${page}&limit=${limit}&search=${encodeURIComponent(searchQuery)}`,
     method: "GET",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("Token")}`,
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
     postData: {},
   };
@@ -132,7 +132,7 @@ export const fetchJobs = async (page = 1, limit = 10, search = "") => {
     path: `/applications/getApplications?page=${page}&limit=${limit}&search=${encodeURIComponent(searchQuery)}`,
     method: "GET",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("Token")}`,
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
     postData: {},
   };
@@ -144,7 +144,19 @@ export const fetchPerformance = async (page = 1, limit = 10, searchQuery = "") =
     path: `/performance/getPerformance?page=${page}&limit=${limit}&search=${encodeURIComponent(searchQuery)}`,
     method: "GET",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("Token")}`,
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+    postData: {},
+  };
+  return invokeApi(reqObj);
+};
+
+export const fetchActivity = async (page = 1, limit = 10, searchQuery = "") => {
+  const reqObj = {
+    path: `/activities/getActivityList?page=${page}&limit=${limit}&search=${encodeURIComponent(searchQuery)}`,
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
     postData: {},
   };
@@ -157,7 +169,7 @@ export const fetchTrainings = async (page = 1, limit = 10, searchQuery = "") => 
     path: `/training/getTrainings?page=${page}&limit=${limit}&search=${encodeURIComponent(searchQuery)}`,
     method: "GET",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("Token")}`,
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
     postData: {},
   };
@@ -170,7 +182,7 @@ export const fetchFines = async (page = 1, limit = 10, searchQuery = "") => {
     path: `/fines/getFines?page=${page}&limit=${limit}&search=${encodeURIComponent(searchQuery)}`,
     method: "GET",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("Token")}`,
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
     postData: {},
   };
@@ -183,7 +195,7 @@ export const fetchPayrolls = async (page = 1, limit = 10, searchQuery = "") => {
     path: `/payroll/getPayrolls?page=${page}&limit=${limit}&search=${encodeURIComponent(searchQuery)}`,
     method: "GET",
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("Token")}`,
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
     postData: {},
   };

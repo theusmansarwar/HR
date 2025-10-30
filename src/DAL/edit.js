@@ -110,15 +110,19 @@ export const updateTraining = async (id, data) => {
   return invokeApi(reqObj);
 };
 
-
 export const updateFines = async (id, data) => {
   const reqObj = {
     path: `/fines/updateFine/${id}`,
     method: "PUT",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
     postData: data,
   };
   return invokeApi(reqObj);
 };
+
 
 export const updatePayroll = async (id, data) => {
   const reqObj = {
