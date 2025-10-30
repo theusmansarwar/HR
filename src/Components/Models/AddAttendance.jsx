@@ -68,27 +68,80 @@ export default function AddAttendance({
 
   // Prefill form for edit
   React.useEffect(() => {
+    console.log("=== DEBUG START ===");
+    console.log("Modeldata:", Modeldata);
+    console.log("Modeltype:", Modeltype);
+    
     if (Modeldata) {
+      console.log("checkInTime raw:", Modeldata.checkInTime);
+      console.log("checkInTime type:", typeof Modeldata.checkInTime);
+      console.log("checkOutTime raw:", Modeldata.checkOutTime);
+      console.log("checkOutTime type:", typeof Modeldata.checkOutTime);
+      
       const selectedEmployeeId =
         typeof Modeldata.employeeId === "object"
           ? Modeldata.employeeId._id
           : Modeldata.employeeId;
 
+      // Fixed function to format date/time to HH:mm (24-hour format)
+      const formatTime = (time) => {
+        console.log("formatTime input:", time);
+        if (!time) {
+          console.log("Time is empty/null/undefined");
+          return "";
+        }
+        
+        // If time is already in HH:mm or HH:mm:ss format, return it directly
+        if (typeof time === 'string' && /^\d{2}:\d{2}(:\d{2})?$/.test(time)) {
+          console.log("Time already in correct format:", time);
+          // Return only HH:mm part (remove seconds if present)
+          return time.substring(0, 5);
+        }
+        
+        try {
+          const date = new Date(time);
+          console.log("Date object created:", date);
+          console.log("Is valid date?", !isNaN(date.getTime()));
+          
+          // Check if date is valid
+          if (isNaN(date.getTime())) {
+            console.log("Invalid date, returning empty");
+            return "";
+          }
+          
+          const hours = String(date.getHours()).padStart(2, "0");
+          const minutes = String(date.getMinutes()).padStart(2, "0");
+          const formatted = `${hours}:${minutes}`;
+          console.log("Formatted time:", formatted);
+          return formatted;
+        } catch (error) {
+          console.error("Error formatting time:", error);
+          return "";
+        }
+      };
+
+      const formattedCheckIn = formatTime(Modeldata.checkInTime);
+      const formattedCheckOut = formatTime(Modeldata.checkOutTime);
+      
+      console.log("Final checkInTime:", formattedCheckIn);
+      console.log("Final checkOutTime:", formattedCheckOut);
+
       setForm({
         attendanceId: Modeldata.attendanceId || "",
         employeeId: selectedEmployeeId || "",
         status: Modeldata.status || "Present",
-        checkInTime: Modeldata.checkInTime || "",
-        checkOutTime: Modeldata.checkOutTime || "",
+        checkInTime: formattedCheckIn,
+        checkOutTime: formattedCheckOut,
         shiftName: Modeldata.shiftName || "",
         overtimeHours: Modeldata.overtimeHours || 0,
       });
       setId(Modeldata._id || "");
+      console.log("=== DEBUG END ===");
     } else {
       setForm(initialForm);
       setId("");
     }
-  }, [Modeldata]);
+  }, [Modeldata, open]); // Added 'open' dependency to reset when modal opens
 
   const handleClose = () => {
     setErrors({});
@@ -99,7 +152,6 @@ export default function AddAttendance({
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // trim string values
     const trimmedValue = typeof value === "string" ? value.trim() : value;
     setForm((prev) => ({ ...prev, [name]: trimmedValue }));
     setErrors((prev) => ({ ...prev, [name]: "" }));
@@ -108,6 +160,19 @@ export default function AddAttendance({
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
+
+    let tempErrors = {};
+
+    // Overtime Hours validation
+    if (form.overtimeHours < 0) {
+      tempErrors.overtimeHours = "Overtime hours must be a positive value";
+    }
+
+    if (Object.keys(tempErrors).length > 0) {
+      setErrors(tempErrors);
+      showAlert("error", "Please fix the errors before submitting");
+      return; // stop submission
+    }
 
     try {
       const payload = { ...form };
@@ -119,18 +184,18 @@ export default function AddAttendance({
         response = await updateAttendance(id, payload);
       }
 
-      // ✅ success case
       if (response.status === 200 || response.status === 201) {
-        showAlert("success", response.message || "Attendance saved successfully");
+        showAlert(
+          "success",
+          response.message || "Attendance saved successfully"
+        );
         onSave?.(response.data);
         onResponse?.({
           messageType: "success",
           message: response.message || "Attendance saved successfully",
         });
         handleClose();
-      }
-      // ⚠️ backend validation errors
-      else if (response.status === 400 && response.missingFields) {
+      } else if (response.status === 400 && response.missingFields) {
         const fieldErrors = {};
         response.missingFields.forEach((f) => {
           fieldErrors[f.name] = f.message;
@@ -141,9 +206,7 @@ export default function AddAttendance({
           messageType: "error",
           message: response.message || "Validation failed",
         });
-      }
-      // ❌ other errors
-      else {
+      } else {
         showAlert("error", response.message || "Something went wrong");
         onResponse?.({
           messageType: "error",
@@ -241,12 +304,14 @@ export default function AddAttendance({
             <TextField
               label="Check In Time"
               name="checkInTime"
+              type="time"
               fullWidth
               required
               value={form.checkInTime}
               onChange={handleChange}
               error={!!errors.checkInTime}
               helperText={errors.checkInTime}
+              InputLabelProps={{ shrink: true }}
             />
           </Grid>
 
@@ -254,12 +319,14 @@ export default function AddAttendance({
             <TextField
               label="Check Out Time"
               name="checkOutTime"
+              type="time"
               fullWidth
               required
               value={form.checkOutTime}
               onChange={handleChange}
               error={!!errors.checkOutTime}
               helperText={errors.checkOutTime}
+              InputLabelProps={{ shrink: true }}
             />
           </Grid>
 
@@ -273,6 +340,7 @@ export default function AddAttendance({
               onChange={handleChange}
               error={!!errors.overtimeHours}
               helperText={errors.overtimeHours}
+              inputProps={{ min: 0 }}
             />
           </Grid>
         </Grid>

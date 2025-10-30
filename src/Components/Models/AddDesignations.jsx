@@ -245,16 +245,6 @@ React.useEffect(() => {
             </TextField>
           </Grid>
 
-          <Grid item xs={6} display="flex" alignItems="center" gap={1}>
-            <input
-              type="checkbox"
-              name="archive"
-              checked={form.archive}
-              onChange={handleChange}
-            />
-            <Typography>Archive Designation</Typography>
-          </Grid>
-
           <Grid item xs={6}>
             <TextField
               select

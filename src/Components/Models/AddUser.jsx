@@ -11,8 +11,11 @@ import {
 import { createUser } from "../../DAL/create";
 import { updateUser } from "../../DAL/edit";
 import { getRoles } from "../../DAL/fetch";
+import { useAlert } from "../Alert/AlertContext"; // ✅ Added this import
 
 const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) => {
+  const { showAlert } = useAlert(); // ✅ Using useAlert hook
+  
   const [form, setForm] = React.useState({
     name: "",
     email: "",
@@ -33,6 +36,7 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
         setAllRoles(res?.data || []);
       } catch (error) {
         console.error("Error fetching roles:", error);
+        showAlert("error", "Failed to fetch roles");
       }
     };
     
@@ -95,6 +99,7 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
     e.preventDefault();
     
     if ((modalType === "Edit" || modalType === "Update") && !id) {
+      showAlert("error", "User ID is missing. Cannot update user.");
       if (typeof onResponse === "function") {
         onResponse({
           messageType: "error",
@@ -124,17 +129,22 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
 
       console.log("✅ API Response:", response);
 
-      // invokeApi returns { status: 201, message: "...", data: {...} }
+      // Success handling
       if (response?.status === 200 || response?.status === 201) {
-        console.log("🎉 Success! Closing modal and refreshing...");
+        const successMessage = response.message || "User saved successfully!";
         
+        // ✅ Show alert notification
+        showAlert("success", successMessage);
+        
+        // Also call onResponse callback if provided
         if (typeof onResponse === "function") {
           onResponse({
             messageType: "success",
-            message: response.message || "User saved successfully!",
+            message: successMessage,
           });
         }
         
+        // Call onSave to refresh data
         if (typeof onSave === "function") {
           await onSave(response.data);
         }
@@ -143,7 +153,7 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
         return;
       }
 
-      // Handle validation errors
+      // Handle validation errors (400)
       if (response?.status === 400 && Array.isArray(response?.missingFields)) {
         const fieldErrors = {};
         response.missingFields.forEach((f) => {
@@ -151,10 +161,13 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
         });
         setErrors(fieldErrors);
 
+        const errorMessage = response.message || "Please fill all required fields.";
+        showAlert("error", errorMessage);
+
         if (typeof onResponse === "function") {
           onResponse({
             messageType: "error",
-            message: response.message || "Please fill all required fields.",
+            message: errorMessage,
           });
         }
         setLoading(false);
@@ -162,10 +175,13 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
       }
 
       // Other errors
+      const errorMessage = response?.message || "Something went wrong!";
+      showAlert("error", errorMessage);
+      
       if (typeof onResponse === "function") {
         onResponse({
           messageType: "error",
-          message: response?.message || "Something went wrong!",
+          message: errorMessage,
         });
       }
       setLoading(false);
@@ -180,10 +196,13 @@ const AddUser = ({ open, setOpen, modalType, modalData, onSave, onResponse }) =>
         setErrors(fieldErrors);
       }
 
+      const errorMessage = error?.message || "Internal Server Error";
+      showAlert("error", errorMessage);
+
       if (typeof onResponse === "function") {
         onResponse({
           messageType: "error",
-          message: error?.message || "Internal Server Error",
+          message: errorMessage,
         });
       }
       setLoading(false);

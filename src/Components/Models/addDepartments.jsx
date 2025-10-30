@@ -184,22 +184,6 @@ export default function AddDepartment({
             />
           </Grid>
 
-          <Grid
-            item
-            xs={6}
-            display="flex"
-            alignItems="center"
-            gap={1}
-            mt={1}
-          >
-            <input
-              type="checkbox"
-              name="isArchived"
-              checked={form.isArchived}
-              onChange={handleChange}
-            />
-            <Typography>Archive Department</Typography>
-          </Grid>
 
           <Grid item xs={6}>
             <TextField
