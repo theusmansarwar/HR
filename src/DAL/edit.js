@@ -60,6 +60,10 @@ export const updateAttendance = async (id, data) => {
   const reqObj = {
     path: `/attendance/updateAttendance/${id}`,
     method: "PUT",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
     postData: data,
   };
   return invokeApi(reqObj);
@@ -69,6 +73,10 @@ export const updateLeave = async (id, data) => {
   const reqObj = {
     path: `/leaves/updateLeave/${id}`,
     method: "PUT",
+     headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
     postData: data,
   };
   return invokeApi(reqObj);
@@ -78,6 +86,10 @@ export const updateJob = async (id, data) => {
   const reqObj = {
     path: `/jobs/updateJob/${id}`,
     method: "PUT",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
     postData: data,
   };
   return invokeApi(reqObj);
@@ -105,6 +117,10 @@ export const updateTraining = async (id, data) => {
   const reqObj = {
     path: `/training/updateTraining/${id}`,
     method: "PUT",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
     postData: data,
   };
   return invokeApi(reqObj);
@@ -128,6 +144,10 @@ export const updatePayroll = async (id, data) => {
   const reqObj = {
     path: `/payroll/updatePayroll/${id}`,
     method: "PUT",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
     postData: data,
   };
   return invokeApi(reqObj);

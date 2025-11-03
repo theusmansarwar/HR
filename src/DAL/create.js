@@ -44,6 +44,10 @@ export const createAttendance = async (data) => {
   const reqObj = {
     path: "/attendance/createAttendance",
     method: "POST",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
     postData: data,
   };
   return invokeApi(reqObj);
@@ -53,6 +57,10 @@ export const createLeaves = async (data) => {
   const reqObj = {
     path: "/leaves/createLeave",
     method: "POST",
+     headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
     postData: data,
   };
   return invokeApi(reqObj);
@@ -62,6 +70,10 @@ export const createJobs = async (data) => {
   const reqObj = {
     path: "/jobs/createJob",
     method: "POST",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
     postData: data,
   };
   return invokeApi(reqObj);
@@ -89,6 +101,10 @@ export const createTraining = async (data) => {
   const reqObj = {
     path: "/training/createTraining",
     method: "POST",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
     postData: data,
   };
   return invokeApi(reqObj);
@@ -112,6 +128,10 @@ export const createPayroll = async (data) => {
   const reqObj = {
     path: "/payroll/createPayroll",
     method: "POST",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
     postData: data,
   };
   return invokeApi(reqObj);

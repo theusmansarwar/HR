@@ -24,7 +24,7 @@ const ActivityLogs = () => {
   // useTable hook
   const { tableUI, fetchData } = useTable({
     attributes,
-    tableType: "activities", // 👈 This will call your `/api/activities` backend route
+    tableType: "Activity", // 👈 This will call your `/api/activities` backend route
     onAdd: null, // No add modal needed for logs
     onEdit: (rowData) => {
       setModelType("View");

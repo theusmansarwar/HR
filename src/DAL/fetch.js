@@ -113,6 +113,7 @@ export const fetchAttendance = async (page = 1, limit = 10, searchQuery = "") =>
   return invokeApi(reqObj);
 };
 
+
 export const fetchJobs = async (page = 1, limit = 10, search = "") => {  
   const searchParam = search ? `&search=${encodeURIComponent(search)}` : "";
   
@@ -120,6 +121,7 @@ export const fetchJobs = async (page = 1, limit = 10, search = "") => {
     path: `/jobs/getJobs?page=${page}&limit=${limit}${searchParam}`,  
     method: "GET",
     headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`, // ✅ Added
       "Cache-Control": "no-cache",
       Pragma: "no-cache",
     },
