@@ -82,7 +82,6 @@ export default function AddJobs({
       setId(Modeldata?._id || "");
     } else {
       setForm({
-        jobTitle: "",
         jobDescription: "",
         departmentId: "",
         designationId: "",
@@ -97,7 +96,6 @@ export default function AddJobs({
 const handleClose = () => {
   setErrors({});
   setForm({
-    jobTitle: "",
     jobDescription: "",
     departmentId: "",
     designationId: "",
@@ -183,19 +181,6 @@ const handleClose = () => {
         )}
 
         <Grid container spacing={2}>
-          <Grid item xs={6}>
-            <TextField
-              label="Job Title"
-              name="jobTitle"
-              fullWidth
-              required
-              value={form.jobTitle}
-              onChange={handleChange}
-              error={!!errors.jobTitle}
-              helperText={errors.jobTitle}
-            />
-          </Grid>
-
           <Grid item xs={6}>
             <TextField
               select

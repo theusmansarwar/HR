@@ -20,6 +20,7 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { baseUrl } from "../../Config/Config"; // ✅ Import baseUrl
 import {
   fetchallcategorylist,
   fetchDepartments,
@@ -87,6 +88,14 @@ export function useTable({
   const [modeltype, setModeltype] = useState("Add");
   const [modelData, setModelData] = useState({});
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
+
+  // ✅ NEW: Handle resume click
+  const handleResumeClick = (filename) => {
+    if (filename) {
+      const fileUrl = `${baseUrl}/applications/download/${filename}`;
+      window.open(fileUrl, '_blank');
+    }
+  };
 
   const getStatusStyles = (status) => {
     switch (status) {
@@ -651,7 +660,23 @@ export function useTable({
                               key={attr.id}
                               sx={{ color: "var(--black-color)" }}
                             >
-                              {attr.id === "createdAt" ||
+                              {/* ✅ Make resume column clickable */}
+                              {attr.id === "resume" ? (
+                                <Typography
+                                  sx={{
+                                    color: "var(--primary-color)",
+                                    cursor: "pointer",
+                                    textDecoration: "underline",
+                                    "&:hover": {
+                                      color: "var(--primary-dark)",
+                                      textDecoration: "none",
+                                    },
+                                  }}
+                                  onClick={() => handleResumeClick(row[attr.id])}
+                                >
+                                  {truncateText(row[attr.id] || "N/A", 30)}
+                                </Typography>
+                              ) : attr.id === "createdAt" ||
                               attr.id === "updatedAt" ||
                               attr.id === "appraisalDate" ||
                               attr.id === "dateOfBirth" ||
@@ -661,7 +686,9 @@ export function useTable({
                               attr.id === "expiryDate" ||
                               attr.id === "fineDate" ||
                               attr.id === "paymentDate" ||
-                              attr.id === "publishedDate" ? (
+                              attr.id === "publishedDate" ||
+                              attr.id === "applicationDate" ||
+                              attr.id === "interviewDate" ? (
                                 formatDate(row[attr.id])
                               ) : attr.id === "status" ? (
                                 <span

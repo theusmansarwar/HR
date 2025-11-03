@@ -1,9 +1,8 @@
 import axios from "axios";
 import { baseUrl } from "../Config/Config";
 
+console.log(baseUrl, "datasasuaydgskj");
 
-axios.defaults.headers.post["Content-Type"] = "application/json";
-console.log(baseUrl , "datasasuaydgskj")
 export async function invokeApi({
   path,
   method = "GET",
@@ -11,11 +10,21 @@ export async function invokeApi({
   queryParams = {},
   postData = {},
 }) {
+  const isFormData = postData instanceof FormData;
+
   const reqObj = {
     method,
     url: baseUrl + path,
-    headers,
+    headers: {
+      // Only set Content-Type for non-FormData requests
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
+      ...headers,
+    },
   };
+
+  if (isFormData) {
+    reqObj.transformRequest = [(data) => data]; // Return FormData as-is
+  }
 
   reqObj.params = queryParams;
 
@@ -32,6 +41,7 @@ export async function invokeApi({
   let results;
 
   console.log("<===REQUEST-OBJECT===>", reqObj);
+  console.log("<===IS-FORMDATA===>", isFormData);
 
   try {
     results = await axios(reqObj);

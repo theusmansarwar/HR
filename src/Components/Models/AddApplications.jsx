@@ -48,7 +48,8 @@ export default function AddApplication({
 
   const [id, setId] = useState("");
   const [jobs, setJobs] = useState([]);
-  const [errors, setErrors] = useState({}); // 🧠 for field-level error messages
+  const [errors, setErrors] = useState({}); 
+  const [resumeFileName, setResumeFileName] = useState(""); // ✅ NEW: Track filename separately
 
   useEffect(() => {
     const getJobs = async () => {
@@ -62,78 +63,98 @@ export default function AddApplication({
     getJobs();
   }, []);
 
-useEffect(() => {
-  if (modalType === "Add") {
-    setForm({
-      jobId: "",
-      applicantName: "",
-      applicantEmail: "",
-      applicantPhone: "",
-      resume: null,
-      applicationDate: "",
-      applicationStatus: "Pending",
-      interviewDate: "",
-      remarks: "",
-    });
-    setId("");
-    setErrors({});
-    return;
-  }
+  useEffect(() => {
+    if (modalType === "Add") {
+      setForm({
+        jobId: "",
+        applicantName: "",
+        applicantEmail: "",
+        applicantPhone: "",
+        resume: null,
+        applicationDate: "",
+        applicationStatus: "Pending",
+        interviewDate: "",
+        remarks: "",
+      });
+      setId("");
+      setErrors({});
+      setResumeFileName(""); // ✅ Reset filename
+      return;
+    }
 
-  if (modalType === "Update" && modalData && jobs.length > 0) {
-    const normalizedJobId = modalData.jobId?._id
-      ? String(modalData.jobId._id)
-      : String(modalData.jobId || "");
+    if (modalType === "Update" && modalData && jobs.length > 0) {
+      const normalizedJobId = modalData.jobId?._id
+        ? String(modalData.jobId._id)
+        : String(modalData.jobId || "");
 
-    const newForm = {
-      ...modalData,
-      jobId: normalizedJobId,
-      applicationDate: modalData.applicationDate
-        ? modalData.applicationDate.split("T")[0]
-        : "",
-      interviewDate: modalData.interviewDate
-        ? modalData.interviewDate.split("T")[0]
-        : "",
-    };
+      const newForm = {
+        ...modalData,
+        jobId: normalizedJobId,
+        applicationDate: modalData.applicationDate
+          ? modalData.applicationDate.split("T")[0]
+          : "",
+        interviewDate: modalData.interviewDate
+          ? modalData.interviewDate.split("T")[0]
+          : "",
+      };
 
-    setForm(newForm);
-    setId(modalData._id || "");
-    setErrors({});
-  }
-}, [modalType, modalData, jobs]);
-; 
-
-// useEffect(() => {
-//   if (jobs.length > 0 && form.jobId) {
-//     const match = jobs.find((j) => j._id === form.jobId);
-//     if (!match) {
-//       const found = jobs.find((j) => j._id === (modalData?.jobId?._id || modalData?.jobId));
-//       if (found) setForm((prev) => ({ ...prev, jobId: found._id }));
-//     }
-//   }
-// }, [jobs]);
+      setForm(newForm);
+      setId(modalData._id || "");
+      setErrors({});
+      setResumeFileName(modalData.resume || ""); // ✅ Set existing resume name
+    }
+  }, [modalType, modalData, jobs]);
 
   const handleClose = () => setOpen(false);
 
+  // ✅ FIXED: Handle file uploads properly
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    setForm({ ...form, [name]: name === "resume" && files.length > 0 ? files[0].name : value });
-    setErrors({ ...errors, [name]: "" }); // clear error when user types
+    
+    if (name === "resume" && files && files.length > 0) {
+      // Store the actual File object, not just the name
+      setForm({ ...form, resume: files[0] });
+      setResumeFileName(files[0].name);
+      setErrors({ ...errors, resume: "" });
+    } else {
+      setForm({ ...form, [name]: value });
+      setErrors({ ...errors, [name]: "" });
+    }
   };
 
+  // ✅ FIXED: Use FormData to send files
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Create FormData to properly send files
+      const formData = new FormData();
+      formData.append("jobId", form.jobId);
+      formData.append("applicantName", form.applicantName);
+      formData.append("applicantEmail", form.applicantEmail);
+      formData.append("applicantPhone", form.applicantPhone);
+      formData.append("applicationDate", form.applicationDate);
+      formData.append("applicationStatus", form.applicationStatus);
+      formData.append("interviewDate", form.interviewDate);
+      formData.append("remarks", form.remarks);
+      
+      // Only append resume if it's a File object (new upload)
+      if (form.resume instanceof File) {
+        formData.append("resume", form.resume);
+      }
+
       let response;
-      if (modalType === "Add") response = await createApplications(form);
-      else if (modalType === "Update") response = await updateApplications(id, form);
+      if (modalType === "Add") {
+        response = await createApplications(formData);
+      } else if (modalType === "Update") {
+        response = await updateApplications(id, formData);
+      }
 
       if (response?.status === 201 || response?.status === 200) {
         onResponse({ messageType: "success", message: response.message });
         if (onSave) onSave(response.data);
         setOpen(false);
       } 
-      // 🔥 Handle backend validation errors
+      // Handle backend validation errors
       else if (response?.status === 400 && response?.missingFields) {
         const fieldErrors = {};
         response.missingFields.forEach((f) => {
@@ -172,9 +193,8 @@ useEffect(() => {
               {jobs.map((job) => (
                 <MenuItem key={job._id} value={String(job._id)}>
                   {job.jobTitle}
-                  </MenuItem>
-                ))}
-
+                </MenuItem>
+              ))}
             </TextField>
           </Grid>
 
@@ -217,31 +237,35 @@ useEffect(() => {
             />
           </Grid>
 
-          {/* Resume Upload */}
+          {/* ✅ FIXED: Resume Upload with proper error display */}
           <Grid item xs={6}>
             <Button variant="contained" component="label" fullWidth>
               Upload Resume
-              <input type="file" hidden name="resume" onChange={handleChange} />
+              <input 
+                type="file" 
+                hidden 
+                name="resume" 
+                onChange={handleChange}
+              />
             </Button>
-            {form.resume && (
+            {resumeFileName && (
+              <Typography variant="caption" display="block" sx={{ mt: 1, color: "text.secondary" }}>
+                Selected: {resumeFileName}
+              </Typography>
+            )}
+            {form.resume && typeof form.resume === "string" && (
               <Button
                 variant="text"
                 size="small"
                 sx={{ mt: 1 }}
-                onClick={() =>
-                  window.open(
-                    typeof form.resume === "string"
-                      ? `/uploads/${form.resume}`
-                      : URL.createObjectURL(form.resume),
-                    "_blank"
-                  )
-                }
+                onClick={() => window.open(`/uploads/${form.resume}`, "_blank")}
               >
-                View Resume
+                View Current Resume
               </Button>
             )}
+            {/* ✅ Error message displayed in red below the button */}
             {errors.resume && (
-              <Typography color="error" variant="caption">
+              <Typography color="error" variant="caption" display="block" sx={{ mt: 0.5 }}>
                 {errors.resume}
               </Typography>
             )}
