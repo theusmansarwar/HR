@@ -17,6 +17,10 @@ export const createnewDepartment = async (data) => {
   const reqObj = {
     path: "/departments/createDepartment", 
     method: "POST",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
     postData: data, 
   };
   return invokeApi(reqObj);
@@ -26,6 +30,10 @@ export const createDesignation = async (data) => {
   const reqObj = {
     path: "/designations/createDesignation",
     method: "POST",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
     postData: data,
   };
   return invokeApi(reqObj);
@@ -35,6 +43,10 @@ export const createEmployee = async (data) => {
   const reqObj = {
     path: "/employees/createEmployee",
     method: "POST",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
     postData: data,
   };
   return invokeApi(reqObj);
@@ -83,6 +95,10 @@ export const createApplications = async (data) => {
   const reqObj = {
     path: "/applications/createApplication",
     method: "POST",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
     postData: data,
   };
   return invokeApi(reqObj);

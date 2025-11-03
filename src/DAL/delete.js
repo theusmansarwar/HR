@@ -19,6 +19,10 @@ export const deleteDepartment = async (id) => {
   const reqObj = {
     path: `/departments/deleteDepartment/${id}`,
     method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
   };
   return invokeApi(reqObj);
 };
@@ -27,6 +31,10 @@ export const deleteDesignation = async (id) => {
   const reqObj = {
     path: `/designations/deleteDesignation/${id}`,
     method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
   };
   return invokeApi(reqObj);
 };
@@ -35,6 +43,10 @@ export const deleteEmployee = async (id) => {
   const reqObj = {
     path: `/employees/deleteEmployee/${id}`,
     method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
   };
   return invokeApi(reqObj);
 };
@@ -79,6 +91,10 @@ export const deleteApplications = async (id) => {
   const reqObj = {
     path: `/applications/deleteApplication/${id}`,
     method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
   };
   return invokeApi(reqObj);
   };
@@ -87,6 +103,10 @@ export const deleteApplications = async (id) => {
   const reqObj = {
     path: `/performance/deletePerformance/${id}`,
     method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
   };
   return invokeApi(reqObj);
 };

@@ -33,6 +33,10 @@ export const updateDepartment = async (id, data) => {
   const reqObj = {
     path: `/departments/updateDepartment/${id}`,
     method: "PUT",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
     postData: data,
   };
   return invokeApi(reqObj);
@@ -42,6 +46,10 @@ export const updateDesignation = async (id, data) => {
   const reqObj = {
     path: `/designations/updateDesignation/${id}`,
     method: "PUT",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
     postData: data,
   };
   return invokeApi(reqObj);
@@ -51,6 +59,10 @@ export const updateEmployee = async (id, data) => {
   const reqObj = {
     path: `/employees/updateEmployee/${id}`,
     method: "PUT",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
     postData: data,
   };
   return invokeApi(reqObj);
@@ -99,6 +111,10 @@ export const updateApplications = async (id, data) => {
   const reqObj = {
     path: `/applications/updateApplication/${id}`,
     method: "PUT",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
     postData: data,
   };
   return invokeApi(reqObj);

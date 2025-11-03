@@ -59,6 +59,7 @@ export const fetchDepartments = async (page = 1, limit = 10, search = "") => {
     path: `/departments/getDepartments?page=${page}&limit=${limit}${searchParam}`,
     method: "GET",
     headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
       "Cache-Control": "no-cache",
       Pragma: "no-cache",
     },
