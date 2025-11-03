@@ -111,19 +111,20 @@ const App = ({ onLogout }) => {
 
   useEffect(() => {
   const user = JSON.parse(localStorage.getItem("user"));
-  if (user?.role) {
-    fetchRoleByName(user.role)
-      .then((res) => {
-        setRoleModules(res.modules || []);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setLoading(false);
-      });
-  } else {
-    setLoading(false);
-  }
+  setRoleModules(user.modules || []);
+  // if (user?.role) {
+  //   fetchRoleByName(user.role)
+  //     .then((res) => {
+  //       setRoleModules(res.modules || []);
+  //       setLoading(false);
+  //     })
+  //     .catch((err) => {
+  //       console.error(err);
+  //       setLoading(false);
+  //     });
+  // } else {
+  //   setLoading(false);
+  // }
 }, []);
 
   const toggleMenu = () => setIsOpen((prev) => !prev);
@@ -151,20 +152,36 @@ const handleItemClick = (item) => {
     setActiveItem(current?.name || null);
   }, [location.pathname]);
 
-  const filteredMenu = allMenuItems
-    .map((item) => {
-      if (item.children) {
-        const allowedChildren = item.children.filter((child) =>
-          roleModules.includes(child.name)
-        );
-        if (allowedChildren.length > 0) {
-          return { ...item, children: allowedChildren };
-        }
-        return null;
+  // const filteredMenu = allMenuItems
+  //   .map((item) => {
+  //     if (item.children) {
+  //       const allowedChildren = item.children.filter((child) =>
+  //         roleModules.includes(child.name)
+  //       );
+  //       if (allowedChildren.length > 0) {
+  //         return { ...item, children: allowedChildren };
+  //       }
+  //       return null;
+  //     }
+  //     return roleModules.includes(item.name) ? item : null;
+  //   })
+  //   .filter(Boolean);
+const filteredMenu = allMenuItems
+  .map((item) => {
+    if (item.children) {
+      // Filter children based on roleModules
+      const allowedChildren = item.children.filter((child) =>
+        roleModules.includes(child.name)
+      );
+      if (allowedChildren.length > 0) {
+        return { ...item, children: allowedChildren };
       }
-      return roleModules.includes(item.name) ? item : null;
-    })
-    .filter(Boolean);
+      return null;
+    }
+    // Filter top-level menu items based on roleModules
+    return roleModules.includes(item.name) ? item : null;
+  })
+  .filter(Boolean); // Remove null values from the filtered menu
 
   return (
     <div className="App">
