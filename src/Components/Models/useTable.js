@@ -660,7 +660,6 @@ export function useTable({
                               key={attr.id}
                               sx={{ color: "var(--black-color)" }}
                             >
-                              {/* ✅ Make resume column clickable */}
                               {attr.id === "resume" ? (
                                 <Typography
                                   sx={{
