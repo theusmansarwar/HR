@@ -112,6 +112,8 @@ const App = ({ onLogout }) => {
   useEffect(() => {
   const user = JSON.parse(localStorage.getItem("user"));
   setRoleModules(user.modules || []);
+  setLoading(false);
+  console.log("User modules from localStorage:", user.modules);
   // if (user?.role) {
   //   fetchRoleByName(user.role)
   //     .then((res) => {
