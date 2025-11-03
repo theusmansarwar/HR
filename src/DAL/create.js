@@ -108,6 +108,10 @@ export const createPerformance = async (data) => {
   const reqObj = {
     path: "/performance/createPerformance",
     method: "POST",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
     postData: data,
   };
   return invokeApi(reqObj);

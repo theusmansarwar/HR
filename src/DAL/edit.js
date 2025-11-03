@@ -124,6 +124,10 @@ export const updatePerformance = async (id, data) => {
   const reqObj = {
     path: `/performance/updatePerformance/${id}`,
     method: "PUT",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "application/json",
+    },
     postData: data,
   };
   return invokeApi(reqObj);
