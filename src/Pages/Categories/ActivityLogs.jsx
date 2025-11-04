@@ -250,8 +250,8 @@ const ActivityLogs = () => {
 
   return (
     <Box sx={{ 
-      width: "100%", 
-      height: "100vh",
+      width: "95%", 
+      height: "95vh",
       p: { xs: 1, sm: 2, md: 3 },
       overflow: "hidden"
     }}>

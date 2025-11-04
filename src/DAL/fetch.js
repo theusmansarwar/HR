@@ -166,6 +166,18 @@ export const fetchActivity = async (page = 1, limit = 10, searchQuery = "") => {
   return invokeApi(reqObj);
 };
 
+export const fetchArchive = async (page = 1, limit = 10, searchQuery = "") => {
+  const reqObj = {
+    path: `/archives/getAllArchives?page=${page}&limit=${limit}&search=${encodeURIComponent(searchQuery)}`,
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+    postData: {},
+  };
+  return invokeApi(reqObj);
+};
+
 
 export const fetchTrainings = async (page = 1, limit = 10, searchQuery = "") => {
   const reqObj = {

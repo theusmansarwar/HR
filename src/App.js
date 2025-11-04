@@ -28,6 +28,7 @@ import Users from "./Pages/Categories/Users";
 import Roles from "./Pages/Categories/Roles";
 import { IoIosArrowForward } from "react-icons/io";
 import Activity from "./Pages/Categories/ActivityLogs";
+import Archive from "./Pages/Categories/Archive"
 
 const allMenuItems = [
   { id: 1, name: "Dashboard", route: "/dashboard", icon: <MdDashboard /> },
@@ -60,6 +61,7 @@ const allMenuItems = [
   { id: 11, name: "Fines", route: "/fines", icon: <GiPayMoney /> },
   { id: 12, name: "Reports", route: "/reports", icon: <FaFileAlt /> },
   { id: 13, name: "Activity", route: "/activity", icon: <FaFileAlt /> },
+   { id: 14, name: "Archive", route: "/archive", icon: <FaFileAlt /> },
 ];
 
 const pageComponents = {
@@ -79,6 +81,7 @@ const pageComponents = {
   Applications,
   Reports,
   Activity,
+  Archive
 };
 
 const ProtectedRoute = ({ component: Component, allowed }) => {

@@ -5,7 +5,7 @@ import AddRole from "../../Components/Models/AddRole";
 const allModules = [
   "Dashboard","Users","Roles", "Departments","Designations","Employees",
   "Attendance","Leaves","Performance","Training",
-  "Payroll","Fines","Jobs","Applications","Reports","Activity"
+  "Payroll","Fines","Jobs","Applications","Reports","Activity","Archive"
 ];
 
 const Roles = ({ currentUser }) => {
