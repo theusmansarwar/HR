@@ -133,7 +133,7 @@ export default function AddPerformance({
         setErrors(fieldErrors);
         onResponse({
           messageType: "error",
-          message: response.message || "Validation failed ⚠️",
+          message: response.message || "Validation failed",
         });
       } else {
         onResponse({

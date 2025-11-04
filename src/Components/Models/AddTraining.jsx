@@ -125,8 +125,7 @@ export default function AddTraining({
           message: response.message || "Training saved successfully",
         });
         setOpen(false);
-      }
-      else if (response.status === 400 && response.missingFields) {
+      } else if (response.status === 400 && response.missingFields) {
         const fieldErrors = {};
         response.missingFields.forEach((f) => {
           fieldErrors[f.name] = f.message;
@@ -136,8 +135,7 @@ export default function AddTraining({
           messageType: "error",
           message: response.message || "Validation failed",
         });
-      }
-      else {
+      } else {
         onResponse({
           messageType: "error",
           message: response.message || "Something went wrong",
@@ -149,6 +147,19 @@ export default function AddTraining({
         messageType: "error",
         message: "Internal Server Error",
       });
+    }
+  };
+
+  const handlePreview = () => {
+    const certificateUrl =
+      form.certificate || (Modeldata && Modeldata.certificate);
+    if (certificateUrl) {
+      window.open(
+        typeof certificateUrl === "string"
+          ? `/uploads/${certificateUrl}`
+          : URL.createObjectURL(certificateUrl),
+        "_blank"
+      );
     }
   };
 
@@ -258,9 +269,6 @@ export default function AddTraining({
             </TextField>
           </Grid>
 
-           
-           
-
           {/* Certificate */}
           <Grid item xs={6}>
             <Button variant="contained" component="label" fullWidth>
@@ -279,20 +287,11 @@ export default function AddTraining({
             )}
           </Grid>
 
-          {form.certificate && (
+          {/* Preview Certificate */}
+          {(form.certificate || (Modeldata && Modeldata.certificate)) && (
             <Grid item xs={6}>
-              <Button
-                variant="text"
-                onClick={() =>
-                  window.open(
-                    typeof form.certificate === "string"
-                      ? `/uploads/${form.certificate}`
-                      : URL.createObjectURL(form.certificate),
-                    "_blank"
-                  )
-                }
-              >
-                View Certificate
+              <Button variant="text" onClick={handlePreview}>
+                Preview Certificate
               </Button>
             </Grid>
           )}

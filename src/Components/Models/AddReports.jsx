@@ -1,973 +1,653 @@
-// src/Components/Models/AddReports.jsx
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Button,
-  Typography,
-  Modal,
-  TextField,
-  MenuItem,
-  Grid,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
+import { 
+  Box, 
+  Button, 
+  MenuItem, 
+  TextField, 
+  Typography, 
   CircularProgress,
-  Chip,
-  InputAdornment,
+  Paper,
   Card,
   CardContent,
-  IconButton,
-  Tooltip,
-  Alert,
-  Fade,
-  LinearProgress,
   Divider,
-  ButtonGroup,
-  TablePagination,
-  alpha,
+  Chip,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  DialogContentText
 } from "@mui/material";
-import { CSVLink } from "react-csv";
-import SearchIcon from "@mui/icons-material/Search";
-import CloseIcon from "@mui/icons-material/Close";
-import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
-import DownloadIcon from "@mui/icons-material/Download";
-import FilterListIcon from "@mui/icons-material/FilterList";
-import AssessmentIcon from "@mui/icons-material/Assessment";
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import RefreshIcon from "@mui/icons-material/Refresh";
-import { jsPDF } from "jspdf";
-import "jspdf-autotable";
-import {
-  fetchApplications,
-  fetchEmployees,
-  fetchDepartments,
-  fetchDesignations,
-  fetchJobs,
-  fetchPayrolls,
-  fetchPerformance,
-  fetchFines,
-  fetchTraining,
-  fetchAttendance,
-  fetchLeaves,
+import { Delete as DeleteIcon } from "@mui/icons-material";
+import { fetchReports } from "../../DAL/fetch";
+import { createReport } from "../../DAL/create";
+import { deleteReport } from "../../DAL/delete";
+import { 
+  fetchEmployees, 
+  fetchPayrolls, 
+  fetchPerformance, 
+  fetchFines, 
+  fetchApplications 
 } from "../../DAL/fetch";
 
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "96%",
-  maxWidth: "1600px",
-  maxHeight: "96vh",
-  bgcolor: "background.paper",
-  boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
-  borderRadius: "16px",
-  overflow: "hidden",
-  display: "flex",
-  flexDirection: "column",
-};
+const reportTypes = ["Employees", "Payroll", "Performance", "Fines", "Applications"];
 
-const reportTypes = [
-  { value: "Employees", label: "👥 Employees", icon: "👥" },
-  { value: "Departments", label: "🏢 Departments", icon: "🏢" },
-  { value: "Designations", label: "💼 Designations", icon: "💼" },
-  { value: "Jobs", label: "📋 Jobs", icon: "📋" },
-  { value: "Payroll", label: "💰 Payroll", icon: "💰" },
-  { value: "Performance", label: "📈 Performance", icon: "📈" },
-  { value: "Fines", label: "⚠️ Fines", icon: "⚠️" },
-  { value: "Training", label: "📚 Training", icon: "📚" },
-  { value: "Applications", label: "📝 Applications", icon: "📝" },
-  { value: "Attendance", label: "✅ Attendance", icon: "✅" },
-  { value: "Leaves", label: "🏖️ Leaves", icon: "🏖️" },
-];
-
-const filtersByReportType = {
-  Employees: ["All", "Active", "Inactive", "Terminated"],
-  Departments: ["All", "Active", "Inactive"],
-  Designations: ["All", "Active", "Inactive"],
-  Jobs: ["All", "Open", "Closed", "On Hold"],
-  Payroll: ["All", "Paid", "Unpaid", "Pending", "Processing"],
-  Performance: ["All", "Excellent (>=90)", "Good (>=80)", "Average (>=70)", "Below Average (<70)"],
-  Fines: ["All", "Paid", "Unpaid", "Waived"],
-  Training: ["All", "Completed", "In Progress", "Upcoming", "Cancelled"],
-  Applications: ["All", "Pending", "Shortlisted", "Interviewed", "Hired", "Rejected"],
-  Attendance: ["All", "Present", "Absent", "Late", "Half Day", "On Leave"],
-  Leaves: ["All", "Approved", "Pending", "Rejected", "Cancelled"],
-};
-
-const fetchFunctionMap = {
-  Employees: fetchEmployees,
-  Departments: fetchDepartments,
-  Designations: fetchDesignations,
-  Jobs: fetchJobs,
-  Payroll: fetchPayrolls,
-  Performance: fetchPerformance,
-  Fines: fetchFines,
-  Training: fetchTraining,
-  Applications: fetchApplications,
-  Attendance: fetchAttendance,
-  Leaves: fetchLeaves,
-};
-
-const getStatusColor = (status) => {
-  const statusMap = {
-    Active: "success",
-    Inactive: "default",
-    Terminated: "error",
-    Completed: "success",
-    Pending: "warning",
-    Paid: "success",
-    Unpaid: "error",
-    Approved: "success",
-    Rejected: "error",
-    Present: "success",
-    Absent: "error",
-    Late: "warning",
-    Hired: "success",
-    Shortlisted: "info",
-    Interviewed: "secondary",
-    "In Progress": "info",
-    Processing: "info",
-    Upcoming: "default",
-    Waived: "default",
-    Open: "success",
-    Closed: "default",
-    "On Hold": "warning",
-    "Half Day": "warning",
-    "On Leave": "info",
-    Cancelled: "default",
-  };
-  return statusMap[status] || "default";
-};
-
-const formatValue = (key, value) => {
-  if (value === null || value === undefined || value === "") return "N/A";
-  
-  if (
-    key.toLowerCase().includes("date") ||
-    key === "createdAt" ||
-    key === "updatedAt"
-  ) {
-    try {
-      return new Date(value).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    } catch {
-      return value;
-    }
-  }
-  
-  if (
-    key.toLowerCase().includes("salary") ||
-    key.toLowerCase().includes("amount") ||
-    key.toLowerCase().includes("payment") ||
-    key.toLowerCase().includes("fine")
-  ) {
-    const num = parseFloat(value);
-    return isNaN(num) ? value : `$${num.toLocaleString()}`;
-  }
-  
-  if (key.toLowerCase().includes("score") || key.toLowerCase().includes("rating")) {
-    return `${value}%`;
-  }
-  
-  return value;
-};
-
-const cleanColumnName = (col) => {
-  return col
-    .replace(/([A-Z])/g, " $1")
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (l) => l.toUpperCase())
-    .trim();
-};
-
-export default function AddReports({ open, setOpen }) {
+const Reports = () => {
   const [reportType, setReportType] = useState("");
-  const [filterValue, setFilterValue] = useState("All");
   const [data, setData] = useState([]);
-  const [filteredData, setFilteredData] = useState([]);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [savedReports, setSavedReports] = useState([]);
+  const [showForm, setShowForm] = useState(false);
+  
+  // All data from backend
+  const [employees, setEmployees] = useState([]);
+  const [payrolls, setPayrolls] = useState([]);
+  const [performance, setPerformance] = useState([]);
+  const [fines, setFines] = useState([]);
+  const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [dateRange, setDateRange] = useState({ from: "", to: "" });
-  const [summary, setSummary] = useState(null);
-  const [error, setError] = useState(null);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [viewingReport, setViewingReport] = useState(null);
+  
+  // Delete confirmation dialog
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, reportId: null, reportTitle: "" });
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    setData([]);
-    setFilteredData([]);
-    setFilterValue("All");
-    setSearchQuery("");
-    setDateRange({ from: "", to: "" });
-    setSummary(null);
-    setError(null);
-    setPage(0);
-  }, [reportType]);
+    fetchAllData();
+    fetchReportsData();
+  }, []);
 
-  useEffect(() => {
-    if (!searchQuery) {
-      setFilteredData(data);
+  const fetchAllData = async () => {
+    setDataLoading(true);
+    try {
+      const [empRes, payRes, perfRes, fineRes, appRes] = await Promise.all([
+        fetchEmployees(1, 1000, ""),
+        fetchPayrolls(1, 1000, ""),
+        fetchPerformance(1, 1000, ""),
+        fetchFines(1, 1000, ""),
+        fetchApplications(1, 1000, "")
+      ]);
+
+      setEmployees(empRes?.data || empRes?.employees || []);
+      setPayrolls(payRes?.data || payRes?.payrolls || []);
+      setPerformance(perfRes?.data || perfRes?.performance || []);
+      setFines(fineRes?.data || fineRes?.fines || []);
+      setApplications(appRes?.data || appRes?.applications || []);
+      
+      console.log("Data fetched:", { empRes, payRes, perfRes, fineRes, appRes });
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      alert("Error loading data. Please refresh the page.");
+    } finally {
+      setDataLoading(false);
+    }
+  };
+
+  const fetchReportsData = async () => {
+    try {
+      const reports = await fetchReports();
+      setSavedReports(reports?.data || reports || []);
+    } catch (error) {
+      console.error("Error fetching reports:", error);
+    }
+  };
+
+  const handleGenerate = () => {
+    if (!reportType) {
+      alert("Please select a report type");
       return;
     }
 
-    const query = searchQuery.toLowerCase();
-    const filtered = data.filter((item) =>
-      Object.entries(item).some(([key, val]) => {
-        if (key === "_id" || key === "__v") return false;
-        return String(val).toLowerCase().includes(query);
-      })
-    );
-    setFilteredData(filtered);
-    setPage(0);
-  }, [searchQuery, data]);
+    let selectedData = [];
+    switch (reportType) {
+      case "Employees":
+        selectedData = [...employees];
+        break;
+      case "Payroll":
+        selectedData = [...payrolls];
+        break;
+      case "Performance":
+        selectedData = [...performance];
+        break;
+      case "Fines":
+        selectedData = [...fines];
+        break;
+      case "Applications":
+        selectedData = [...applications];
+        break;
+      default:
+        selectedData = [];
+    }
 
-  const handleClose = () => {
-    setOpen(false);
-    setReportType("");
-    setData([]);
-    setFilteredData([]);
-    setError(null);
+    console.log("Generated data:", selectedData);
+    setData(selectedData);
+    setShowForm(true);
   };
 
-  const fetchReportData = async () => {
-    if (!reportType) return;
-    
+  const handleSubmit = async () => {
+    if (!title || !reportType) {
+      alert("Please fill all required fields");
+      return;
+    }
+
+    const payload = {
+      reportType,
+      filter: "",
+      title,
+      description,
+      generatedBy: "HR Admin",
+      data,
+    };
+
     setLoading(true);
-    setError(null);
-    
     try {
-      const fetchFunction = fetchFunctionMap[reportType];
-      
-      if (!fetchFunction) {
-        throw new Error(`No fetch function defined for ${reportType}`);
-      }
-
-      const response = await fetchFunction();
-      
-      if (!response || !Array.isArray(response)) {
-        throw new Error("Invalid response format from server");
-      }
-
-      // Clean data by removing MongoDB specific fields
-      const cleanedData = response.map(item => {
-        const { _id, __v, ...rest } = item;
-        return rest;
-      });
-      
-      setData(cleanedData);
-      setFilteredData(cleanedData);
-      calculateSummary(cleanedData);
-    } catch (err) {
-      console.error("Error fetching report data:", err);
-      setError(err.message || "Failed to fetch report data. Please try again.");
+      await createReport(payload);
+      alert("Report saved successfully!");
+      setTitle("");
+      setDescription("");
+      setReportType("");
       setData([]);
-      setFilteredData([]);
+      setShowForm(false);
+      fetchReportsData();
+    } catch (error) {
+      console.error("Error submitting report:", error);
+      alert("Error saving report. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const calculateSummary = (reportData) => {
-    if (!reportData.length) {
-      setSummary(null);
-      return;
-    }
-
-    const stats = {
-      total: reportData.length,
-    };
-
-    // Count status occurrences
-    const statusField = reportData[0].status ? 'status' : 
-                       reportData[0].applicationStatus ? 'applicationStatus' : null;
-    
-    if (statusField) {
-      const statusCounts = {};
-      reportData.forEach(item => {
-        const status = item[statusField];
-        if (status) {
-          statusCounts[status] = (statusCounts[status] || 0) + 1;
-        }
-      });
-      stats.statusBreakdown = statusCounts;
-      
-      // Common status metrics
-      stats.active = statusCounts.Active || 0;
-      stats.inactive = statusCounts.Inactive || 0;
-      stats.pending = statusCounts.Pending || 0;
-    }
-
-    // Payroll specific
-    if (reportType === "Payroll") {
-      const salaryField = Object.keys(reportData[0]).find(k => 
-        k.toLowerCase().includes('salary') || k.toLowerCase().includes('amount')
-      );
-      
-      if (salaryField) {
-        stats.totalAmount = reportData.reduce(
-          (sum, item) => sum + (parseFloat(item[salaryField]) || 0), 0
-        );
-        stats.averageAmount = stats.totalAmount / reportData.length;
-      }
-      stats.paid = reportData.filter(i => i.status === "Paid").length;
-      stats.unpaid = reportData.filter(i => i.status === "Unpaid").length;
-    }
-
-    // Performance specific
-    if (reportType === "Performance") {
-      const scoreField = Object.keys(reportData[0]).find(k => 
-        k.toLowerCase().includes('score') || k.toLowerCase().includes('rating')
-      );
-      
-      if (scoreField) {
-        const scores = reportData.map(i => parseFloat(i[scoreField]) || 0);
-        const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
-        stats.averageScore = avgScore.toFixed(2);
-        stats.highPerformers = scores.filter(s => s >= 90).length;
-        stats.lowPerformers = scores.filter(s => s < 70).length;
-      }
-    }
-
-    // Attendance specific
-    if (reportType === "Attendance") {
-      stats.present = reportData.filter(i => i.status === "Present").length;
-      stats.absent = reportData.filter(i => i.status === "Absent").length;
-      stats.late = reportData.filter(i => i.status === "Late").length;
-      
-      if (stats.total > 0) {
-        stats.attendanceRate = ((stats.present / stats.total) * 100).toFixed(1);
-      }
-    }
-
-    // Leaves specific
-    if (reportType === "Leaves") {
-      stats.approved = reportData.filter(i => i.status === "Approved").length;
-      stats.rejected = reportData.filter(i => i.status === "Rejected").length;
-      
-      if (stats.total > 0) {
-        stats.approvalRate = ((stats.approved / stats.total) * 100).toFixed(1);
-      }
-    }
-
-    setSummary(stats);
+  const handleViewReport = (report) => {
+    setViewingReport(report);
   };
 
-  const handleGenerate = async () => {
-    await fetchReportData();
+  const handleCloseReport = () => {
+    setViewingReport(null);
   };
 
-  const applyFilters = () => {
-    let filtered = [...data];
-
-    if (filterValue && filterValue !== "All") {
-      filtered = filtered.filter((item) => {
-        if (reportType === "Performance") {
-          const scoreField = Object.keys(item).find(k => 
-            k.toLowerCase().includes('score') || k.toLowerCase().includes('rating')
-          );
-          const score = parseFloat(item[scoreField]) || 0;
-          
-          if (filterValue.includes(">=90")) return score >= 90;
-          if (filterValue.includes(">=80")) return score >= 80;
-          if (filterValue.includes(">=70")) return score >= 70;
-          if (filterValue.includes("<70")) return score < 70;
-        }
-        
-        return item.status === filterValue || item.applicationStatus === filterValue;
-      });
-    }
-
-    if (dateRange.from && dateRange.to) {
-      filtered = filtered.filter((item) => {
-        const dateField = Object.keys(item).find(k => 
-          k.toLowerCase().includes('date') || k === 'createdAt'
-        );
-        
-        if (!dateField || !item[dateField]) return true;
-        
-        try {
-          const itemDate = new Date(item[dateField]);
-          return (
-            itemDate >= new Date(dateRange.from) &&
-            itemDate <= new Date(dateRange.to)
-          );
-        } catch {
-          return true;
-        }
-      });
-    }
-
-    setFilteredData(filtered);
-    calculateSummary(filtered);
-    setPage(0);
-  };
-
-  useEffect(() => {
-    if (data.length > 0) {
-      applyFilters();
-    }
-  }, [filterValue, dateRange]);
-
-  const exportToPDF = () => {
-    const doc = new jsPDF("l", "mm", "a4");
-    
-    // Title
-    doc.setFontSize(20);
-    doc.setTextColor(33, 150, 243);
-    doc.text(`${reportType} Report`, 14, 20);
-    
-    // Metadata
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 28);
-    doc.text(`Total Records: ${filteredData.length}`, 14, 34);
-    doc.text(`Filter: ${filterValue}`, 14, 40);
-
-    // Summary section
-    if (summary) {
-      doc.setFontSize(12);
-      doc.setTextColor(0, 0, 0);
-      doc.text("Summary Statistics", 14, 50);
-      doc.setFontSize(9);
-      
-      let yPos = 56;
-      Object.entries(summary).forEach(([key, value]) => {
-        if (typeof value === 'object') return;
-        doc.text(`${cleanColumnName(key)}: ${value}`, 14, yPos);
-        yPos += 5;
-      });
-    }
-
-    const columns = filteredData.length > 0 ? 
-      Object.keys(filteredData[0]).filter(k => k !== '_id' && k !== '__v') : [];
-    
-    const rows = filteredData.map((row) =>
-      columns.map((col) => String(formatValue(col, row[col])))
-    );
-
-    doc.autoTable({
-      head: [columns.map(cleanColumnName)],
-      body: rows,
-      startY: summary ? 75 : 50,
-      styles: { 
-        fontSize: 8,
-        cellPadding: 2,
-      },
-      headStyles: { 
-        fillColor: [33, 150, 243],
-        fontStyle: 'bold',
-      },
-      alternateRowStyles: {
-        fillColor: [245, 245, 245],
-      },
-      margin: { top: 10 },
+  const handleDeleteClick = (e, report) => {
+    e.stopPropagation(); // Prevent card click event
+    setDeleteDialog({
+      open: true,
+      reportId: report._id || report.id,
+      reportTitle: report.title
     });
-
-    doc.save(`${reportType}_Report_${new Date().toISOString().split("T")[0]}.pdf`);
   };
 
-  const columns = filteredData.length > 0 ? 
-    Object.keys(filteredData[0]).filter(k => k !== '_id' && k !== '__v') : [];
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
+  const handleDeleteConfirm = async () => {
+    setDeleting(true);
+    try {
+      await deleteReport(deleteDialog.reportId);
+      alert("Report deleted successfully!");
+      fetchReportsData();
+      setDeleteDialog({ open: false, reportId: null, reportTitle: "" });
+    } catch (error) {
+      console.error("Error deleting report:", error);
+      alert("Error deleting report. Please try again.");
+    } finally {
+      setDeleting(false);
+    }
   };
 
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+  const handleDeleteCancel = () => {
+    setDeleteDialog({ open: false, reportId: null, reportTitle: "" });
   };
 
-  const paginatedData = filteredData.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
+  if (dataLoading) {
+    return (
+      <Box 
+        display="flex" 
+        justifyContent="center" 
+        alignItems="center" 
+        minHeight="400px"
+        flexDirection="column"
+        gap={2}
+      >
+        <CircularProgress size={48} />
+        <Typography variant="body1" color="text.secondary">Loading data...</Typography>
+      </Box>
+    );
+  }
 
   return (
-    <Modal open={open} onClose={handleClose}>
-      <Box sx={style}>
-        {/* Header */}
-        <Box
-          sx={{
-            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-            color: "white",
-            p: 3,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+    <Box sx={{ maxWidth: 1400, margin: "0 auto", p: 4 }}>
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialog.open}
+        onClose={handleDeleteCancel}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Delete Report?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete the report <strong>"{deleteDialog.reportTitle}"</strong>? 
+            This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button 
+            onClick={handleDeleteCancel} 
+            disabled={deleting}
+            sx={{ textTransform: "none" }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleDeleteConfirm} 
+            color="error" 
+            variant="contained"
+            disabled={deleting}
+            sx={{ textTransform: "none" }}
+          >
+            {deleting ? <CircularProgress size={20} color="inherit" /> : "Delete"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Viewing Report Modal */}
+      {viewingReport && (
+        <Paper 
+          elevation={3} 
+          sx={{ 
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "90%",
+            maxWidth: 1200,
+            maxHeight: "90vh",
+            overflow: "auto",
+            zIndex: 1300,
+            p: 4
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            <AssessmentIcon sx={{ fontSize: 40 }} />
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
             <Box>
-              <Typography variant="h5" fontWeight="700">
-                Advanced Report Generator
+              <Typography variant="h5" fontWeight={600} gutterBottom>
+                {viewingReport.title}
               </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                Generate comprehensive reports with advanced analytics
-              </Typography>
-            </Box>
-          </Box>
-          <IconButton onClick={handleClose} sx={{ color: "white" }}>
-            <CloseIcon />
-          </IconButton>
-        </Box>
-
-        <Box sx={{ flex: 1, overflow: "auto", p: 3 }}>
-          {/* Filters */}
-          <Card sx={{ mb: 3, boxShadow: 3 }}>
-            <CardContent>
-              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                <FilterListIcon sx={{ mr: 1, color: "primary.main" }} />
-                <Typography variant="h6" fontWeight="600">
-                  Report Configuration
-                </Typography>
+              <Box display="flex" gap={1} mb={1}>
+                <Chip 
+                  label={viewingReport.reportType} 
+                  size="small" 
+                  color="primary"
+                />
+                <Chip 
+                  label={viewingReport.generatedBy} 
+                  size="small" 
+                  variant="outlined"
+                />
+                <Chip 
+                  label={`${viewingReport.data?.length || 0} records`} 
+                  size="small" 
+                  color="success"
+                  variant="outlined"
+                />
               </Box>
-              <Divider sx={{ mb: 2 }} />
-              
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6} md={3}>
-                  <TextField
-                    select
-                    label="Select Report Type"
-                    fullWidth
-                    size="small"
-                    value={reportType}
-                    onChange={(e) => setReportType(e.target.value)}
-                    SelectProps={{
-                      renderValue: (selected) => {
-                        const report = reportTypes.find(r => r.value === selected);
-                        return report ? report.label : "";
-                      }
-                    }}
-                  >
-                    {reportTypes.map((type) => (
-                      <MenuItem key={type.value} value={type.value}>
-                        {type.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-
-                {reportType && (
-                  <>
-                    <Grid item xs={12} sm={6} md={3}>
-                      <TextField
-                        select
-                        label="Filter By Status"
-                        fullWidth
-                        size="small"
-                        value={filterValue}
-                        onChange={(e) => setFilterValue(e.target.value)}
-                      >
-                        {filtersByReportType[reportType]?.map((option) => (
-                          <MenuItem key={option} value={option}>
-                            {option}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    </Grid>
-
-                    <Grid item xs={12} sm={6} md={2}>
-                      <TextField
-                        type="date"
-                        label="From Date"
-                        fullWidth
-                        size="small"
-                        InputLabelProps={{ shrink: true }}
-                        value={dateRange.from}
-                        onChange={(e) =>
-                          setDateRange({ ...dateRange, from: e.target.value })
-                        }
-                      />
-                    </Grid>
-
-                    <Grid item xs={12} sm={6} md={2}>
-                      <TextField
-                        type="date"
-                        label="To Date"
-                        fullWidth
-                        size="small"
-                        InputLabelProps={{ shrink: true }}
-                        value={dateRange.to}
-                        onChange={(e) =>
-                          setDateRange({ ...dateRange, to: e.target.value })
-                        }
-                      />
-                    </Grid>
-
-                    <Grid item xs={12} sm={12} md={2}>
-                      <Button
-                        variant="contained"
-                        fullWidth
-                        onClick={handleGenerate}
-                        disabled={loading}
-                        sx={{ 
-                          height: "40px",
-                          background: "linear-gradient(45deg, #667eea 30%, #764ba2 90%)",
-                        }}
-                        startIcon={loading ? null : <TrendingUpIcon />}
-                      >
-                        {loading ? <CircularProgress size={24} color="inherit" /> : "Generate"}
-                      </Button>
-                    </Grid>
-                  </>
-                )}
-              </Grid>
-            </CardContent>
-          </Card>
-
-          {/* Error Alert */}
-          {error && (
-            <Fade in={!!error}>
-              <Alert 
-                severity="error" 
-                sx={{ mb: 3 }}
-                onClose={() => setError(null)}
-              >
-                {error}
-              </Alert>
-            </Fade>
-          )}
-
-          {/* Summary Cards */}
-          {summary && !loading && (
-            <Fade in={!!summary}>
-              <Grid container spacing={2} mb={3}>
-                <Grid item xs={6} sm={4} md={2}>
-                  <Card sx={{ 
-                    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                    color: "white"
-                  }}>
-                    <CardContent sx={{ textAlign: "center", py: 2 }}>
-                      <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                        Total Records
-                      </Typography>
-                      <Typography variant="h4" fontWeight="700">
-                        {summary.total}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-                
-                {summary.active !== undefined && (
-                  <Grid item xs={6} sm={4} md={2}>
-                    <Card sx={{ 
-                      background: "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)",
-                      color: "white"
-                    }}>
-                      <CardContent sx={{ textAlign: "center", py: 2 }}>
-                        <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                          Active
-                        </Typography>
-                        <Typography variant="h4" fontWeight="700">
-                          {summary.active}
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                )}
-                
-                {summary.totalAmount !== undefined && (
-                  <Grid item xs={6} sm={4} md={2.5}>
-                    <Card sx={{ 
-                      background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-                      color: "white"
-                    }}>
-                      <CardContent sx={{ textAlign: "center", py: 2 }}>
-                        <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                          Total Amount
-                        </Typography>
-                        <Typography variant="h5" fontWeight="700">
-                          ${summary.totalAmount.toLocaleString()}
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                )}
-                
-                {summary.averageScore !== undefined && (
-                  <Grid item xs={6} sm={4} md={2}>
-                    <Card sx={{ 
-                      background: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
-                      color: "white"
-                    }}>
-                      <CardContent sx={{ textAlign: "center", py: 2 }}>
-                        <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                          Avg Score
-                        </Typography>
-                        <Typography variant="h4" fontWeight="700">
-                          {summary.averageScore}%
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                )}
-                
-                {summary.attendanceRate !== undefined && (
-                  <Grid item xs={6} sm={4} md={2}>
-                    <Card sx={{ 
-                      background: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
-                      color: "white"
-                    }}>
-                      <CardContent sx={{ textAlign: "center", py: 2 }}>
-                        <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                          Attendance Rate
-                        </Typography>
-                        <Typography variant="h4" fontWeight="700">
-                          {summary.attendanceRate}%
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                )}
-              </Grid>
-            </Fade>
-          )}
-
-          {/* Search & Export */}
-          {filteredData.length > 0 && !loading && (
-            <Box sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "wrap" }}>
-              <TextField
-                size="small"
-                placeholder="Search across all fields..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                sx={{ flex: 1, minWidth: "250px" }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon color="primary" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-
-              <ButtonGroup variant="outlined">
-                <CSVLink
-                  data={filteredData}
-                  filename={`${reportType}_Report_${new Date().toISOString().split("T")[0]}.csv`}
-                  style={{ textDecoration: "none" }}
-                >
-                  <Button startIcon={<DownloadIcon />} sx={{ height: "40px" }}>
-                    Export CSV
-                  </Button>
-                </CSVLink>
-
-                <Button
-                  color="error"
-                  startIcon={<PictureAsPdfIcon />}
-                  onClick={exportToPDF}
-                  sx={{ height: "40px" }}
-                >
-                  Export PDF
-                </Button>
-                
-                <Button
-                  startIcon={<RefreshIcon />}
-                  onClick={handleGenerate}
-                  sx={{ height: "40px" }}
-                >
-                  Refresh
-                </Button>
-              </ButtonGroup>
+              {viewingReport.description && (
+                <Typography variant="body2" color="text.secondary">
+                  {viewingReport.description}
+                </Typography>
+              )}
+              <Typography variant="caption" color="text.secondary" display="block" mt={1}>
+                Generated on {new Date(viewingReport.createdAt).toLocaleDateString()} at {new Date(viewingReport.createdAt).toLocaleTimeString()}
+              </Typography>
             </Box>
-          )}
-
-          {/* Loading State */}
-          {loading && (
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                minHeight: "400px",
-                gap: 3,
-              }}
+            <Button 
+              variant="outlined" 
+              color="error" 
+              onClick={handleCloseReport}
+              sx={{ textTransform: "none" }}
             >
-              <CircularProgress size={60} thickness={4} />
-              <Typography variant="h6" color="text.secondary">
-                Fetching {reportType} data from server...
-              </Typography>
-              <LinearProgress sx={{ width: "300px" }} />
-            </Box>
-          )}
+              Close
+            </Button>
+          </Box>
 
-          {/* Empty State */}
-          {!loading && reportType && filteredData.length === 0 && data.length > 0 && (
-            <Card sx={{ textAlign: "center", py: 8, background: alpha("#667eea", 0.05) }}>
-              <Typography variant="h5" color="text.secondary" mb={2} fontWeight="600">
-                📭 No Results Found
-              </Typography>
-              <Typography variant="body1" color="text.secondary" mb={3}>
-                Try adjusting your filters or search criteria
-              </Typography>
-              <Button 
-                variant="outlined" 
-                onClick={() => {
-                  setFilterValue("All");
-                  setSearchQuery("");
-                  setDateRange({ from: "", to: "" });
-                }}
-              >
-                Clear All Filters
-              </Button>
-            </Card>
-          )}
+          <Divider sx={{ mb: 3 }} />
 
-          {/* Data Table */}
-          {!loading && filteredData.length > 0 && (
-            <>
-              <TableContainer 
-                component={Paper} 
-                sx={{ 
-                  maxHeight: 500,
-                  boxShadow: 3,
-                  borderRadius: 2,
-                }}
-              >
-                <Table stickyHeader size="small">
-                  <TableHead>
-                    <TableRow>
-                      {columns.map((col) => (
-                        <TableCell
-                          key={col}
-                          sx={{
-                            fontWeight: "700",
-                            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                            color: "white",
-                            textTransform: "capitalize",
-                            fontSize: "0.875rem",
+          {viewingReport.data && viewingReport.data.length > 0 ? (
+            <Box sx={{ 
+              overflowX: "auto", 
+              border: "1px solid #e0e0e0",
+              borderRadius: 1
+            }}>
+              <table style={{ 
+                width: "100%", 
+                borderCollapse: "collapse",
+                fontSize: "0.875rem"
+              }}>
+                <thead>
+                  <tr style={{ backgroundColor: "#f5f5f5" }}>
+                    {Object.keys(viewingReport.data[0]).map((key) => (
+                      <th 
+                        key={key} 
+                        style={{ 
+                          border: "1px solid #e0e0e0", 
+                          padding: "12px 16px",
+                          textAlign: "left",
+                          fontWeight: 600,
+                          color: "#424242"
+                        }}
+                      >
+                        {key}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {viewingReport.data.map((item, idx) => (
+                    <tr 
+                      key={idx}
+                      style={{ 
+                        backgroundColor: idx % 2 === 0 ? "#fff" : "#fafafa"
+                      }}
+                    >
+                      {Object.values(item).map((val, i) => (
+                        <td 
+                          key={i} 
+                          style={{ 
+                            border: "1px solid #e0e0e0", 
+                            padding: "12px 16px",
+                            color: "#616161"
                           }}
                         >
-                          {cleanColumnName(col)}
-                        </TableCell>
+                          {val?.toString() ?? "-"}
+                        </td>
                       ))}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {paginatedData.map((row, idx) => (
-                      <TableRow 
-                        key={idx} 
-                        hover
-                        sx={{
-                          '&:nth-of-type(odd)': {
-                            backgroundColor: alpha("#667eea", 0.02),
-                          },
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Box>
+          ) : (
+            <Box sx={{ textAlign: "center", py: 4 }}>
+              <Typography variant="body1" color="text.secondary">
+                No data available in this report
+              </Typography>
+            </Box>
+          )}
+        </Paper>
+      )}
+
+      {/* Backdrop overlay */}
+      {viewingReport && (
+        <Box
+          onClick={handleCloseReport}
+          sx={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            zIndex: 1200
+          }}
+        />
+      )}
+
+      {/* Header */}
+      <Box mb={4}>
+        <Typography variant="h4" fontWeight={600} gutterBottom>
+          Generate Reports
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Select a report type and generate detailed reports for your records
+        </Typography>
+      </Box>
+
+      {/* Report Type Selection */}
+      <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
+        <Box display="flex" gap={2} alignItems="flex-end">
+          <TextField
+            select
+            label="Report Type"
+            value={reportType}
+            onChange={(e) => setReportType(e.target.value)}
+            sx={{ flex: 1 }}
+            variant="outlined"
+          >
+            {reportTypes.map((type, idx) => (
+              <MenuItem key={idx} value={type}>
+                {type}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <Button 
+            variant="contained" 
+            color="primary" 
+            onClick={handleGenerate} 
+            disabled={!reportType}
+            sx={{ 
+              px: 4, 
+              py: 1.5,
+              textTransform: "none",
+              fontSize: "1rem"
+            }}
+          >
+            Generate Report
+          </Button>
+        </Box>
+      </Paper>
+
+      {/* Form and Preview */}
+      {showForm && (
+        <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
+          <Typography variant="h6" fontWeight={600} mb={3}>
+            Report Details
+          </Typography>
+          
+          <Box display="flex" gap={2} mb={3}>
+            <TextField
+              label="Report Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              fullWidth
+              required
+              variant="outlined"
+              placeholder="Enter report title"
+            />
+            <TextField
+              label="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              fullWidth
+              variant="outlined"
+              placeholder="Optional description"
+            />
+          </Box>
+
+          <Box display="flex" justifyContent="flex-end" mb={3}>
+            <Button 
+              variant="contained" 
+              color="success" 
+              onClick={handleSubmit}
+              disabled={loading || !title}
+              sx={{ 
+                px: 4, 
+                py: 1.2,
+                textTransform: "none",
+                fontSize: "1rem"
+              }}
+            >
+              {loading ? <CircularProgress size={24} color="inherit" /> : "Save Report"}
+            </Button>
+          </Box>
+
+          <Divider sx={{ my: 3 }} />
+
+          {/* Report Preview */}
+          {data.length > 0 ? (
+            <>
+              <Box display="flex" alignItems="center" gap={2} mb={2}>
+                <Typography variant="h6" fontWeight={600}>
+                  Preview
+                </Typography>
+                <Chip 
+                  label={`${data.length} records`} 
+                  color="primary" 
+                  size="small" 
+                />
+              </Box>
+              
+              <Box sx={{ 
+                overflowX: "auto", 
+                border: "1px solid #e0e0e0",
+                borderRadius: 1
+              }}>
+                <table style={{ 
+                  width: "100%", 
+                  borderCollapse: "collapse",
+                  fontSize: "0.875rem"
+                }}>
+                  <thead>
+                    <tr style={{ backgroundColor: "#f5f5f5" }}>
+                      {Object.keys(data[0]).map((key) => (
+                        <th 
+                          key={key} 
+                          style={{ 
+                            border: "1px solid #e0e0e0", 
+                            padding: "12px 16px",
+                            textAlign: "left",
+                            fontWeight: 600,
+                            color: "#424242"
+                          }}
+                        >
+                          {key}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.map((item, idx) => (
+                      <tr 
+                        key={idx}
+                        style={{ 
+                          backgroundColor: idx % 2 === 0 ? "#fff" : "#fafafa"
                         }}
                       >
-                        {columns.map((col) => (
-                          <TableCell key={col}>
-                            {col === "status" || col === "applicationStatus" ? (
-                              <Chip
-                                label={row[col]}
-                                color={getStatusColor(row[col])}
-                                size="small"
-                                sx={{ fontWeight: 600 }}
-                              />
-                            ) : (
-                              <Typography variant="body2">
-                                {formatValue(col, row[col])}
-                              </Typography>
-                            )}
-                          </TableCell>
+                        {Object.values(item).map((val, i) => (
+                          <td 
+                            key={i} 
+                            style={{ 
+                              border: "1px solid #e0e0e0", 
+                              padding: "12px 16px",
+                              color: "#616161"
+                            }}
+                          >
+                            {val?.toString() ?? "-"}
+                          </td>
                         ))}
-                      </TableRow>
+                      </tr>
                     ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-
-              <TablePagination
-                component="div"
-                count={filteredData.length}
-                page={page}
-                onPageChange={handleChangePage}
-                rowsPerPage={rowsPerPage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-                rowsPerPageOptions={[5, 10, 25, 50, 100]}
-                sx={{ 
-                  borderTop: "1px solid #e0e0e0",
-                  mt: 2,
-                }}
-              />
-
-              <Box sx={{ 
-                display: "flex", 
-                justifyContent: "space-between",
-                alignItems: "center",
-                mt: 2,
-                flexWrap: "wrap",
-                gap: 2,
-              }}>
-                <Typography variant="body2" color="text.secondary">
-                  Showing {page * rowsPerPage + 1} - {Math.min((page + 1) * rowsPerPage, filteredData.length)} of {filteredData.length} records
-                  {data.length !== filteredData.length && ` (filtered from ${data.length} total)`}
-                </Typography>
-                
-                {summary && (
-                  <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                    {Object.entries(summary.statusBreakdown || {}).map(([status, count]) => (
-                      <Chip
-                        key={status}
-                        label={`${status}: ${count}`}
-                        size="small"
-                        color={getStatusColor(status)}
-                        variant="outlined"
-                      />
-                    ))}
-                  </Box>
-                )}
+                  </tbody>
+                </table>
               </Box>
             </>
+          ) : (
+            <Box 
+              sx={{ 
+                textAlign: "center", 
+                py: 4,
+                color: "text.secondary"
+              }}
+            >
+              <Typography variant="body1">
+                No data available for the selected report type
+              </Typography>
+            </Box>
           )}
+        </Paper>
+      )}
 
-          {/* Initial State */}
-          {!loading && !reportType && (
-            <Card sx={{ 
-              textAlign: "center", 
-              py: 10,
-              background: "linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)",
-            }}>
-              <AssessmentIcon sx={{ fontSize: 80, color: "primary.main", mb: 2 }} />
-              <Typography variant="h5" fontWeight="600" mb={2}>
-                Welcome to Report Generator
-              </Typography>
-              <Typography variant="body1" color="text.secondary" mb={4}>
-                Select a report type above to get started with comprehensive data analysis
-              </Typography>
-              <Box sx={{ display: "flex", gap: 2, justifyContent: "center", flexWrap: "wrap", px: 4 }}>
-                {reportTypes.slice(0, 6).map((type) => (
-                  <Chip
-                    key={type.value}
-                    label={type.label}
-                    onClick={() => setReportType(type.value)}
-                    sx={{ 
-                      fontSize: "0.9rem",
-                      py: 2.5,
-                      px: 1,
-                      cursor: "pointer",
-                      "&:hover": {
-                        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                        color: "white",
-                      }
-                    }}
-                  />
-                ))}
-              </Box>
-            </Card>
-          )}
-        </Box>
+      {/* Saved Reports */}
+      <Box>
+        <Typography variant="h5" fontWeight={600} mb={3}>
+          Saved Reports
+        </Typography>
+        
+        {savedReports.length === 0 ? (
+          <Paper elevation={1} sx={{ p: 4, textAlign: "center" }}>
+            <Typography variant="body1" color="text.secondary">
+              No saved reports yet. Generate your first report above.
+            </Typography>
+          </Paper>
+        ) : (
+          <Box display="grid" gap={2}>
+            {savedReports.map((r, idx) => (
+              <Card 
+                key={idx} 
+                elevation={2}
+                sx={{ 
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    elevation: 4,
+                    transform: "translateY(-2px)",
+                    boxShadow: 3
+                  }
+                }}
+                onClick={() => handleViewReport(r)}
+              >
+                <CardContent>
+                  <Box display="flex" justifyContent="space-between" alignItems="start">
+                    <Box flex={1}>
+                      <Typography variant="h6" fontWeight={600} gutterBottom>
+                        {r.title}
+                      </Typography>
+                      <Box display="flex" gap={1} mb={1}>
+                        <Chip 
+                          label={r.reportType} 
+                          size="small" 
+                          color="primary"
+                          variant="outlined"
+                        />
+                        <Chip 
+                          label={r.generatedBy} 
+                          size="small" 
+                          variant="outlined"
+                        />
+                      </Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Generated on {new Date(r.createdAt).toLocaleDateString()} at {new Date(r.createdAt).toLocaleTimeString()}
+                      </Typography>
+                    </Box>
+                    <Box display="flex" alignItems="center" gap={2}>
+                      <IconButton
+                        onClick={(e) => handleDeleteClick(e, r)}
+                        color="error"
+                        size="medium"
+                        sx={{
+                          border: "1px solid",
+                          borderColor: "error.main",
+                          "&:hover": {
+                            backgroundColor: "error.main",
+                            color: "white"
+                          }
+                        }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                      <Typography 
+                        variant="body2" 
+                        color="primary" 
+                        sx={{ fontWeight: 500 }}
+                      >
+                        View →
+                      </Typography>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+            ))}
+          </Box>
+        )}
       </Box>
-    </Modal>
+    </Box>
   );
-}
+};
+
+export default Reports;

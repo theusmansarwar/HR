@@ -26,6 +26,23 @@ const style = {
 
 const paymentMethods = ["Cash", "Bank Transfer", "Cheque"];
 const statuses = ["Paid", "Pending", "Unpaid"];
+const months = [
+  { label: "January", value: "01" },
+  { label: "February", value: "02" },
+  { label: "March", value: "03" },
+  { label: "April", value: "04" },
+  { label: "May", value: "05" },
+  { label: "June", value: "06" },
+  { label: "July", value: "07" },
+  { label: "August", value: "08" },
+  { label: "September", value: "09" },
+  { label: "October", value: "10" },
+  { label: "November", value: "11" },
+  { label: "December", value: "12" },
+];
+
+const currentYear = new Date().getFullYear();
+const years = Array.from({ length: 20 }, (_, i) => currentYear - i);
 
 export default function AddPayroll({
   open,
@@ -38,7 +55,7 @@ export default function AddPayroll({
   const [form, setForm] = React.useState({
     employeeId: "",
     month: "",
-    year: new Date().getFullYear(),
+    year: currentYear,
     basicSalary: "",
     allowances: "",
     deductions: "",
@@ -71,7 +88,7 @@ export default function AddPayroll({
       setForm({
         employeeId: Modeldata?.employeeId?._id || "",
         month: Modeldata?.month || "",
-        year: Modeldata?.year || new Date().getFullYear(),
+        year: Modeldata?.year || currentYear,
         basicSalary: Modeldata?.basicSalary || "",
         allowances: Modeldata?.allowances || "",
         deductions: Modeldata?.deductions || "",
@@ -90,7 +107,7 @@ export default function AddPayroll({
       setForm({
         employeeId: "",
         month: "",
-        year: new Date().getFullYear(),
+        year: currentYear,
         basicSalary: "",
         allowances: "",
         deductions: "",
@@ -205,6 +222,7 @@ export default function AddPayroll({
 
           <Grid item xs={3}>
             <TextField
+              select
               label="Month"
               name="month"
               fullWidth
@@ -213,21 +231,34 @@ export default function AddPayroll({
               onChange={handleChange}
               error={!!errors.month}
               helperText={errors.month}
-            />
+            >
+              <MenuItem value="">Select Month</MenuItem>
+              {months.map((month) => (
+                <MenuItem key={month.value} value={month.value}>
+                  {month.label}
+                </MenuItem>
+              ))}
+            </TextField>
           </Grid>
 
           <Grid item xs={3}>
             <TextField
+              select
               label="Year"
               name="year"
-              type="number"
               fullWidth
               required
               value={form.year}
               onChange={handleChange}
               error={!!errors.year}
               helperText={errors.year}
-            />
+            >
+              {years.map((year) => (
+                <MenuItem key={year} value={year}>
+                  {year}
+                </MenuItem>
+              ))}
+            </TextField>
           </Grid>
 
           <Grid item xs={6}>

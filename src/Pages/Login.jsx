@@ -20,57 +20,44 @@ const Login = ({ onLoginSuccess }) => {
     }
   }, []);
 
- const handleLogin = async (e) => {
-  e.preventDefault();
-  setLoading(true);
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-  try {
+    try {
       const formData = {
-    email,
-    password,
+        email,
+        password,
+      };
+      const response = await login(formData);
+      const data = response; 
+
+      if (response.status === 200 && data.user) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("modules", JSON.stringify(data.user.modules));
+
+        showAlert("success", data.message || "Login successful!");
+        onLoginSuccess(); // notify parent
+      } else {
+        showAlert("error", data.message || "Login failed.");
+      }
+    } catch (error) {
+      console.error("Axios error:", error);
+      if (error.response) {
+        showAlert("error", error.response.data.message || "Invalid credentials.");
+      } else if (error.request) {
+        showAlert("error", "No response from the server.");
+      } else {
+        showAlert("error", error.message || "Unexpected error occurred.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
-    const response = await login(formData);
-    const data = response; 
-
-    if (response.status === 200 && data.user) {
-
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      localStorage.setItem("modules", JSON.stringify(data.user.modules));
-
-      showAlert("success", data.message || "Login successful!");
-      onLoginSuccess(); // notify parent
-    } else {
-      showAlert("error", data.message || "Login failed.");
-    }
-  } catch (error) {
-    console.error("Axios error:", error);
-    if (error.response) {
-      showAlert("error", error.response.data.message || "Invalid credentials.");
-    } else if (error.request) {
-      showAlert("error", "No response from the server.");
-    } else {
-      showAlert("error", error.message || "Unexpected error occurred.");
-    }
-  } finally {
-    setLoading(false);
-  }
-};
 
   return (
     <Box className="login">
-      {loading && (
-        <CircularProgress
-          size={60}
-          thickness={4}
-          sx={{
-            position: "absolute",
-            top: "20px",
-            color: "primary.main",
-          }}
-        />
-      )}
-
       <Paper
         elevation={6}
         sx={{
@@ -93,8 +80,8 @@ const Login = ({ onLoginSuccess }) => {
             }}
           />
 
-          <Typography variant="h5" gutterBottom>
-            Admin Login
+          <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
+            Welcome to HRM System
           </Typography>
 
           <TextField
@@ -126,14 +113,28 @@ const Login = ({ onLoginSuccess }) => {
               py: 1.2,
               borderRadius: "6px",
               backgroundColor: "var(--background-color)",
+              position: "relative",
               "&:hover": {
                 backgroundColor: "var(--background-color)",
                 opacity: 0.9,
               },
+              "&:disabled": {
+                backgroundColor: "var(--background-color)",
+                opacity: 0.7,
+              },
             }}
             disabled={loading}
           >
-            {loading ? <CircularProgress size={24} color="inherit" /> : "Login"}
+            {loading ? (
+              <CircularProgress 
+                size={24} 
+                sx={{ 
+                  color: "white",
+                }} 
+              />
+            ) : (
+              "Login"
+            )}
           </Button>
         </Box>
       </Paper>
