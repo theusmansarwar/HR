@@ -18,7 +18,7 @@ import {
   DialogActions,
   DialogContentText
 } from "@mui/material";
-import { Delete as DeleteIcon } from "@mui/icons-material";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { fetchReports } from "../../DAL/fetch";
 import { createReport } from "../../DAL/create";
 import { deleteReport } from "../../DAL/delete";

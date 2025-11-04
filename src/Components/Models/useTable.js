@@ -93,7 +93,7 @@ export function useTable({
   const handleResumeClick = (filename) => {
     if (filename) {
       const fileUrl = `${baseUrl}/applications/download/${filename}`;
-      window.open(fileUrl, '_blank');
+      window.open(fileUrl, "_blank");
     }
   };
 
@@ -157,7 +157,11 @@ export function useTable({
           navigate("/login");
         } else {
           setData(response.categories || []);
-          setTotalRecords(response.total || response.totalRecords || (response.categories ? response.categories.length : 0));
+          setTotalRecords(
+            response.total ||
+              response.totalRecords ||
+              (response.categories ? response.categories.length : 0)
+          );
         }
       } else if (tableType === "Employees") {
         response = await fetchEmployees(page, rowsPerPage, searchQuery);
@@ -276,7 +280,7 @@ export function useTable({
           setData(response?.data || []);
           setTotalRecords(response?.total || 0);
         }
-      }else if (tableType === "Activity") {
+      } else if (tableType === "Activity") {
         response = await fetchActivity(page, rowsPerPage, searchQuery);
         if (response?.status === 400) {
           localStorage.removeItem("Token");
@@ -581,8 +585,8 @@ export function useTable({
                     fontWeight: 600,
                   }}
                 >
-                  {searchQuery && searchQuery.trim() !== "" 
-                    ? "No Results Found" 
+                  {searchQuery && searchQuery.trim() !== ""
+                    ? "No Results Found"
                     : `No ${tableType} Available`}
                 </Typography>
                 {searchQuery && searchQuery.trim() !== "" && (
@@ -595,18 +599,19 @@ export function useTable({
                       maxWidth: "400px",
                     }}
                   >
-                    No {tableType.toLowerCase()} match your search "{searchQuery}". Try a different keyword.
+                    No {tableType.toLowerCase()} match your search "
+                    {searchQuery}". Try a different keyword.
                   </Typography>
                 )}
               </Box>
             ) : !loading && data.length > 0 ? (
               <TableContainer>
-                <Table stickyHeader>
-                  <TableHead>
+                <Table stickyHeader >
+                  <TableHead >
                     <TableRow>
-                      <TableCell padding="checkbox">
+                      <TableCell padding="checkbox"  sx={{ backgroundColor: "var(--primary-color)",color: "var(--primary-color)" }}>
                         <Checkbox
-                          sx={{ color: "var(--primary-color)" }}
+                          sx={{ backgroundColor: "var(--primary-color)",color: "white" }}
                           indeterminate={
                             selected.length > 0 && selected.length < data.length
                           }
@@ -620,18 +625,21 @@ export function useTable({
                         <TableCell
                           key={attr.id}
                           sx={{
-                            color: "var(--secondary-color)",
+                            backgroundColor: "var(--primary-color)",
+                            color: "#fff", 
                             minWidth: "150px",
+                            fontWeight: "bold", 
                           }}
                         >
                           {attr.label}
                         </TableCell>
                       ))}
-                      <TableCell sx={{ color: "var(--secondary-color)" }}>
+                      <TableCell sx={{ color: "#fff",backgroundColor: "var(--primary-color)", fontWeight: "bold" }}>
                         Action
                       </TableCell>
                     </TableRow>
                   </TableHead>
+
                   <TableBody>
                     {data.map((row, index) => {
                       const isItemSelected = isSelected(row._id);
@@ -671,23 +679,25 @@ export function useTable({
                                       textDecoration: "none",
                                     },
                                   }}
-                                  onClick={() => handleResumeClick(row[attr.id])}
+                                  onClick={() =>
+                                    handleResumeClick(row[attr.id])
+                                  }
                                 >
                                   {truncateText(row[attr.id] || "N/A", 30)}
                                 </Typography>
                               ) : attr.id === "createdAt" ||
-                              attr.id === "updatedAt" ||
-                              attr.id === "appraisalDate" ||
-                              attr.id === "dateOfBirth" ||
-                              attr.id === "startDate" ||
-                              attr.id === "endDate" ||
-                              attr.id === "postingDate" ||
-                              attr.id === "expiryDate" ||
-                              attr.id === "fineDate" ||
-                              attr.id === "paymentDate" ||
-                              attr.id === "publishedDate" ||
-                              attr.id === "applicationDate" ||
-                              attr.id === "interviewDate" ? (
+                                attr.id === "updatedAt" ||
+                                attr.id === "appraisalDate" ||
+                                attr.id === "dateOfBirth" ||
+                                attr.id === "startDate" ||
+                                attr.id === "endDate" ||
+                                attr.id === "postingDate" ||
+                                attr.id === "expiryDate" ||
+                                attr.id === "fineDate" ||
+                                attr.id === "paymentDate" ||
+                                attr.id === "publishedDate" ||
+                                attr.id === "applicationDate" ||
+                                attr.id === "interviewDate" ? (
                                 formatDate(row[attr.id])
                               ) : attr.id === "status" ? (
                                 <span
