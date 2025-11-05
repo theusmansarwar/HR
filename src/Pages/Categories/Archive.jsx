@@ -886,7 +886,7 @@ const ArchiveManagement = () => {
         )}
       </Paper>
 
-      {/* Restore Confirmation Dialog */}
+      
       <Dialog
         open={restoreDialog.open}
         onClose={() => setRestoreDialog({ open: false, type: "", data: null })}
@@ -927,12 +927,12 @@ const ArchiveManagement = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar for notifications */}
+      
       <Snackbar
         open={snackbar.open}
         autoHideDuration={5000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
       >
         <Alert
           onClose={() => setSnackbar({ ...snackbar, open: false })}
